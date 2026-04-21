@@ -1,0 +1,46 @@
+{
+  "num_rollouts": 10,
+  "success_rate": 0.0,
+  "raw_logs": [
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_0.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_100.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_200.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_300.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_400.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_500.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_600.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_700.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_800.mp4"
+    },
+    {
+      "test/mean_score": 0.0,
+      "test/video_path": "/workspace/isaaclab/scripts/imitation_learning/datasets/stack_output/100epoch_eval_video_900.mp4"
+    }
+  ]
+}

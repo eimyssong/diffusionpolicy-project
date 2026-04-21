@@ -1,0 +1,436 @@
+import os
+import torch
+import numpy as np
+import collections
+import tqdm
+import cv2
+
+from pytorch3d.ops import sample_farthest_points
+
+
+from diffusion_policy_3d.policy.base_policy import BasePolicy
+from diffusion_policy_3d.common.pytorch_util import dict_apply
+from diffusion_policy_3d.env_runner.base_runner import BaseRunner
+import diffusion_policy_3d.common.logger_util as logger_util
+from termcolor import cprint
+
+
+from isaaclab.managers import DatasetExportMode
+from isaaclab.envs.mdp.recorders.recorders_cfg import ActionStateRecorderManagerCfg
+from isaaclab_tasks.manager_based.manipulation.stack import mdp
+
+import open3d as o3d
+import numpy as np
+import matplotlib.pyplot as plt 
+
+class IsaaclabRunner(BaseRunner):
+    def __init__(
+        self,
+        output_dir,
+        eval_episodes=20,
+        max_steps=1000,
+        n_obs_steps=8,
+        n_action_steps=8,
+        fps=10,
+        crf=22,
+        render_size=84,
+        tqdm_interval_sec=5.0,
+        n_envs=None,
+        task_name=None,
+        n_train=None,
+        n_test=None,
+        device="cuda:0",
+        use_point_crop=True,
+        num_points=2048
+    ):
+        super().__init__(output_dir)
+
+        self.output_dir = output_dir
+        os.makedirs(output_dir, exist_ok=True)
+
+        self.device = device
+        self.n_envs = n_envs
+        self.max_steps = max_steps
+        self.n_obs_steps = n_obs_steps
+        self.n_action_steps = n_action_steps
+        self.num_points = num_points
+        self.m_num = 0
+        self.m_epoch = 0
+
+        self.render = o3d.visualization.rendering.OffscreenRenderer(512, 512)
+        self.mtl = o3d.visualization.rendering.MaterialRecord()
+        self.mtl.point_size = 3.0
+        self.mtl.shader = "defaultUnlit"
+
+
+        from isaaclab_tasks.utils import parse_env_cfg
+        cfg = parse_env_cfg(
+            "Isaac-Stack-Cube-Franka-IK-Rel-Visuomotor-v0",
+            device=device,
+            num_envs=n_envs
+        )
+
+        cfg.recorders = ActionStateRecorderManagerCfg()
+        cfg.recorders.dataset_export_dir_path = output_dir
+        cfg.recorders.dataset_filename = "eval_results"
+        cfg.recorders.dataset_export_mode = DatasetExportMode.EXPORT_ALL
+
+        if hasattr(cfg.sim, "render_settings"):
+            cfg.sim.render_settings.enable_cameras = True
+
+        from isaaclab.envs import ManagerBasedEnv
+        self.env = ManagerBasedEnv(cfg)
+        self.env.reset()
+
+
+
+
+    def _preprocess_pointcloud(self, pc_tensor):
+        pc_tensor = pc_tensor.to(self.device)
+        
+        in_channels = pc_tensor.shape[-1]
+
+        # # Table이 다음과 같이 spawn됨
+        # table = AssetBaseCfg(
+        #     prim_path="{ENV_REGEX_NS}/Table",
+        #     init_state=AssetBaseCfg.InitialStateCfg(pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]),
+        #     spawn=UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"),
+        # )
+        
+        xmin, xmax = -2.0, 2.0   
+        ymin, ymax = -2.0, 2.0   
+        zmin, zmax = 0.01, 2.0
+
+        processed = []
+        B = pc_tensor.shape[0]
+
+        for b in range(B):
+            sub_pc = pc_tensor[b]
+            mask = (
+                (sub_pc[:,0] > xmin) & (sub_pc[:,0] < xmax) &
+                (sub_pc[:,1] > ymin) & (sub_pc[:,1] < ymax) &
+                (sub_pc[:,2] > zmin) & (sub_pc[:,2] < zmax)
+            )
+            sub_pc = sub_pc[mask]
+
+            if sub_pc.shape[0] == 0:
+                # 점이 없으면 6채널(혹은 in_channels) 0으로 채움
+                sub_pc = torch.zeros((self.num_points, in_channels), device=self.device)
+            else:
+                # (1, N, C) 형태로 변환하여 FPS 수행 (XYZ 좌표 기준 샘플링)
+                sub_pc_batch = sub_pc.unsqueeze(0).cpu() 
+                if sub_pc_batch.shape[1] >= self.num_points:
+                    # sample_farthest_points는 내부적으로 좌표(앞 3채널)를 기준으로 인덱스를 뽑습니다.
+                    pc_sampled, idx = sample_farthest_points(sub_pc_batch[..., :3], K=self.num_points)
+                    # 원본 sub_pc에서 해당 인덱스의 모든 채널(XYZRGB)을 가져옵니다.
+                    # pytorch3d 버전에 따라 인덱스를 직접 사용하는 것이 안전할 수 있습니다.
+                    # _, idx = sample_farthest_points(sub_pc_batch[..., :3], K=self.num_points)
+                    sub_pc = sub_pc[idx.squeeze(0)].to(self.device)
+                else:
+                    pad = self.num_points - sub_pc.shape[0]
+                    sub_pc = torch.cat([sub_pc, torch.zeros((pad, in_channels), device=self.device)], dim=0)
+            
+            processed.append(sub_pc)
+            
+        return torch.stack(processed)
+
+
+
+
+    # def render_pointcloud(self, pc, cam_eye, cam_target, cam_up):
+    #     if np.all(pc[:, :3] == 0):
+    #         return np.zeros((512, 512, 3), dtype=np.uint8)
+
+    #     pcd = o3d.geometry.PointCloud()
+    #     # 좌표 설정
+    #     pcd.points = o3d.utility.Vector3dVector(pc[:, :3])
+
+    #     # 원래 색상 설정 (4, 5, 6번째 채널)
+    #     # IsaacLab/IsaacSim의 RGB는 대개 [0, 1] 범위입니다.
+    #     colors = pc[:, 3:6]
+    #     pcd.colors = o3d.utility.Vector3dVector(colors)
+
+    #     self.render.scene.remove_geometry("pcd")
+    #     self.render.scene.add_geometry("pcd", pcd, self.mtl)
+        
+    #     self.render.scene.set_background([0.05, 0.05, 0.05, 1.0])
+    #     self.render.setup_camera(60.0, cam_target, cam_eye, cam_up)
+
+    #     img = self.render.render_to_image()
+    #     return np.asarray(img)
+
+
+    def render_pointcloud(self, pc, cam_eye, cam_target, cam_up):
+        if np.all(pc[:, :3] == 0):
+            return np.zeros((512, 512, 3), dtype=np.uint8)
+
+        pcd = o3d.geometry.PointCloud()
+        points = pc[:, :3]
+        pcd.points = o3d.utility.Vector3dVector(points)
+
+        # 1. 카메라 좌표(cam_eye)로부터 각 포인트 사이의 유클리드 거리 계산
+        # dist = sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
+        distances = np.linalg.norm(points - cam_eye, axis=1)
+
+        # 2. 거리 값 정규화 (0 ~ 1 사이로 변환)
+        dist_min = np.min(distances)
+        dist_max = np.max(distances)
+        # 분모가 0이 되는 것을 방지하기 위해 아주 작은 값(1e-7)을 더해줍니다.
+        norm_distances = (distances - dist_min) / (dist_max - dist_min + 1e-7)
+
+        # 3. 컬러맵 적용 (예: 'jet' - 가까우면 파란색, 멀면 빨간색 / 'magma' 등 취향껏 선택)
+        # matplotlib의 cmap은 (N, 4) 형태(RGBA)를 반환하므로 RGB인 앞의 3개 채널만 슬라이싱합니다.
+        cmap = plt.get_cmap('jet') 
+        colors = cmap(norm_distances)[:, :3] 
+
+        pcd.colors = o3d.utility.Vector3dVector(colors)
+
+        # 렌더링 설정
+        self.render.scene.remove_geometry("pcd")
+        self.render.scene.add_geometry("pcd", pcd, self.mtl)
+        
+        self.render.scene.set_background([0.05, 0.05, 0.05, 1.0])
+        self.render.setup_camera(60.0, cam_target, cam_eye, cam_up)
+
+        img = self.render.render_to_image()
+        return np.asarray(img)
+
+
+
+    def _extract_obs(self, obs):
+        if isinstance(obs, tuple): obs = obs[0]
+        p_obs = obs["policy"]
+
+        raw_pc = p_obs["table_cam_pointcloud"]
+        pc = self._preprocess_pointcloud(raw_pc)
+
+        cam = self.env.scene["table_cam"]
+        cam_data = cam.data
+
+        # 3. OpenGL 컨벤션에 맞는 위치와 회전 가져오기
+        cam_eye = cam_data.pos_w[0].cpu().numpy()
+        
+        # 중요: OpenGL 컨벤션(Forward: -Z, Up: +Y) 쿼터니언 사용
+        # IsaacLab이 제공하는 변환된 쿼터니언을 가져옵니다 (w, x, y, z 순서 확인 필요)
+        q_open_gl = cam_data.quat_w_opengl[0].cpu().numpy() 
+        
+        # 쿼터니언을 회전 행렬로 변환하여 방향 벡터 추출
+        import scipy.spatial.transform as st
+        r = st.Rotation.from_quat([q_open_gl[1], q_open_gl[2], q_open_gl[3], q_open_gl[0]]) # x,y,z,w 순서로 변경
+        
+        # OpenGL에서 카메라는 -Z 방향을 바라봅니다.
+        forward = r.apply(np.array([0, 0, -1])) 
+        cam_target = cam_eye + forward
+        
+        # OpenGL에서 Up 벡터는 +Y입니다.
+        cam_up = r.apply(np.array([0, 1, 0]))
+
+        render_frame = p_obs["table_cam"][0][:,:,:3].cpu().numpy().astype(np.uint8)
+
+        return {
+            "obs_dict": {
+                "point_cloud": pc,
+                "agent_pos": torch.cat([p_obs["eef_pos"], p_obs["eef_quat"], p_obs["gripper_pos"]], dim=-1).float()
+            },
+            "render_frame": render_frame,
+            "cam_info": (cam_eye, cam_target, cam_up)
+        }
+
+
+
+    # 이미지랑 pointcloud랑 따로따로 영상으로 저장
+    # def run(self, policy: BasePolicy):
+    #     device = policy.device
+    #     policy.eval()
+
+    #     obs_raw, _ = self.env.reset()
+    #     self.env.recorder_manager.reset()
+
+    #     extracted = self._extract_obs(obs_raw)
+    #     obs_dict = extracted["obs_dict"]
+
+    #     video_path = os.path.join(self.output_dir, f"eval_video_{self.m_num}.mp4")
+    #     pc_video_path = os.path.join(self.output_dir, f"pc_video_{self.m_num}.mp4")
+    #     self.m_num += 100
+    #     h, w, _ = extracted["render_frame"].shape
+    #     video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (w, h))
+    #     pc_video_writer = cv2.VideoWriter(pc_video_path, cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (512, 512))
+
+
+    #     obs_history = collections.deque(maxlen=self.n_obs_steps)
+
+    #     for _ in range(self.n_obs_steps):
+    #         obs_history.append(obs_dict)
+
+    #     step_idx = 0
+    #     reward_sum = 0
+
+    #     pbar = tqdm.tqdm(total=self.max_steps, desc="IsaacLab DP3 Eval")
+
+    #     while step_idx < self.max_steps:
+    #         input_dict = {
+    #             k: torch.stack([o[k] for o in obs_history], dim=1).to(device)
+    #             for k in obs_history[0].keys()
+    #         }
+
+    #         with torch.no_grad():
+    #             action_dict = policy.predict_action(input_dict)
+
+    #         action_pred = action_dict["action_pred"]
+
+    #         for i in range(self.n_action_steps):
+
+    #             if step_idx >= self.max_steps:
+    #                 break
+
+    #             step_result = self.env.step(action_pred[:,i])
+
+    #             if len(step_result) == 5:
+    #                 obs_raw, reward, terminated, truncated, _ = step_result
+    #             else:
+    #                 obs_raw, extras = step_result
+    #                 reward = mdp.cubes_stacked(self.env).int().item()
+    #                 # reward = extras.get("reward", torch.tensor(0.0))
+    #                 terminated = mdp.cubes_stacked(self.env)
+    #                 truncated = extras.get("truncated", torch.tensor(False))
+
+    #             extracted = self._extract_obs(obs_raw)
+    #             obs_dict = extracted["obs_dict"]
+    #             obs_history.append(obs_dict)
+
+                
+    #             frame = cv2.cvtColor(extracted["render_frame"],cv2.COLOR_RGB2BGR)
+    #             video_writer.write(frame)
+
+    #             pc_np = obs_dict["point_cloud"][0].cpu().numpy()
+    #             eye, target, up = extracted["cam_info"]
+    #             pc_img = self.render_pointcloud(pc_np, eye, target, up)
+
+    #             pc_img = cv2.cvtColor(pc_img, cv2.COLOR_RGB2BGR)
+    #             pc_video_writer.write(pc_img)
+
+    #             step_idx += 1
+    #             pbar.update(1)
+    #             reward_sum = reward
+    #             done = terminated | truncated
+
+    #             if done.any():
+    #                 break
+
+    #         if done.any():
+    #             break
+
+    #     pbar.close()
+    #     video_writer.release()
+    #     pc_video_writer.release()
+
+    #     self.env.recorder_manager.export_episodes([0])
+    #     print(f"HDF5 Data & Video saved in: {self.output_dir}")
+
+    #     return {
+    #         "test/mean_score": reward_sum,
+    #         "test/video_path": video_path
+    #     }
+
+
+
+    # 이미지랑 pointcloud랑 한 영상에 함께 저장
+    def run(self, policy: BasePolicy):
+        device = policy.device
+        policy.eval()
+
+        obs_raw, _ = self.env.reset()
+        self.env.recorder_manager.reset()
+
+        extracted = self._extract_obs(obs_raw)
+        obs_dict = extracted["obs_dict"]
+
+        combined_video_path = os.path.join(self.output_dir, f"dataset14_color_img+pc_video_{self.m_epoch}_{self.m_num}.mp4")
+        self.m_num += 1
+        self.m_num = self.m_num % 10
+        if self.m_num == 0:
+            self.m_epoch += 100
+
+        # combined_video_path = os.path.join(self.output_dir, f"dataset13_img+pc_video_{self.m_epoch}.mp4")
+        # self.m_epoch += 100
+            
+        combined_video_writer = cv2.VideoWriter(combined_video_path, cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (1024, 512))
+
+
+        obs_history = collections.deque(maxlen=self.n_obs_steps)
+
+        for _ in range(self.n_obs_steps):
+            obs_history.append(obs_dict)
+
+        step_idx = 0
+        reward_sum = 0
+
+        pbar = tqdm.tqdm(total=self.max_steps, desc="IsaacLab DP3 Eval")
+
+        while step_idx < self.max_steps:
+            input_dict = {
+                k: torch.stack([o[k] for o in obs_history], dim=1).to(device)
+                for k in obs_history[0].keys()
+            }
+
+            with torch.no_grad():
+                action_dict = policy.predict_action(input_dict)
+
+            action_pred = action_dict["action_pred"]
+
+            for i in range(self.n_action_steps):
+
+                if step_idx >= self.max_steps:
+                    break
+
+                step_result = self.env.step(action_pred[:,i])
+
+                if len(step_result) == 5:
+                    obs_raw, reward, terminated, truncated, _ = step_result
+                else:
+                    obs_raw, extras = step_result
+                    reward = mdp.cubes_stacked(self.env).int().item()
+                    # reward = extras.get("reward", torch.tensor(0.0))
+                    terminated = mdp.cubes_stacked(self.env)
+                    truncated = extras.get("truncated", torch.tensor(False))
+
+                extracted = self._extract_obs(obs_raw)
+                obs_dict = extracted["obs_dict"]
+                obs_history.append(obs_dict)
+
+
+
+                rgb_frame = cv2.cvtColor(extracted["render_frame"], cv2.COLOR_RGB2BGR)
+                rgb_frame = cv2.resize(rgb_frame, (512, 512)) # 크기 맞춤                
+
+                pc_np = obs_dict["point_cloud"][0].cpu().numpy()
+                eye, target, up = extracted["cam_info"]
+                pc_img = self.render_pointcloud(pc_np, eye, target, up)
+
+                pc_img_bgr = cv2.cvtColor(pc_img, cv2.COLOR_RGB2BGR)
+
+                # 좌우로 합치기
+                combined_frame = np.hstack([rgb_frame, pc_img_bgr])
+                combined_video_writer.write(combined_frame)
+
+                step_idx += 1
+                pbar.update(1)
+                reward_sum = reward
+                done = terminated | truncated
+
+                if done.any():
+                    break
+
+            if done.any():
+                break
+
+        pbar.close()
+        combined_video_writer.release()
+
+        self.env.recorder_manager.export_episodes([0])
+        print(f"HDF5 Data & Video saved in: {self.output_dir}")
+
+        return {
+            "test/mean_score": reward_sum,
+            "test/video_path": combined_video_path
+        }

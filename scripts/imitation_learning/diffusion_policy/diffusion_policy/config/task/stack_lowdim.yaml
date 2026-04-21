@@ -1,0 +1,65 @@
+# name: stack_lowdim
+
+# obs_dim: 16
+# action_dim: 2
+# keypoint_dim: 2
+# obs_eef_target: True                                # eef가 가야할 목표 지점 정보를 관측치에 포함할지 여부
+
+# env_runner:
+#   _target_: diffusion_policy.env_runner.stack_lowdim_runner.StackLowdimRunner
+#   n_train: 6                                        # 학습 시 몇 개의 에피소드를 실행해 볼 것인지 결정
+#   n_train_vis: 2                                    # 학습하는 에피소드 중 몇 개를 영상으로 저장하거나 wand에 시각화할지 결정
+#   train_start_seed: 0  
+#   n_test: 50                                        # 테스트 시 몇 개의 에피소드를 실행해 볼 것인지 결정 (ex. 50번 테스트해서 성공률 계산)
+#   n_test_vis: 4                                     # 테스트하는 에피소드 중 몇 개를 영상으로 저장하거나 wand에 시각화할지 결정
+#   test_start_seed: 100000
+#   max_steps: 350                                    # 한 에피소드 당 최대 350 step까지만 허용
+#   n_obs_steps: ${n_obs_steps}
+#   n_action_steps: ${n_action_steps}
+#   fps: 5                                            # 초당 5번의 액션을 수행
+#   past_action: ${past_action_visible}
+#   abs_action: False                                 # action 값이 절대 좌표인지, 현재 위치에서의 상대적 변화량인지 결정. False이면 상대 좌표 모드
+#   obs_eef_target: ${task.obs_eef_target}            # eef가 가야할 목표 지점 정보를 관측치에 포함할지 여부
+#   n_envs: null
+
+# dataset:
+#   _target_: diffusion_policy.dataset.stack_lowdim_dataset.StackLowdimDataset
+#   zarr_path: data/stack/multimodal_push_seed.zarr
+#   horizon: ${horizon}                               # 모델이 한 번에 처리하는 전체 시계열 길이
+#   pad_before: ${eval:'${n_obs_steps}-1'}            # 에피소드 시작 부분에서 과거 관측치가 부족할 때, 첫 번째 관측치를 복제해서 채워넣는 크기
+#   pad_after: ${eval:'${n_action_steps}-1'}          # 에피소드 끝 부분에서 미래 액션 데이터가 부족할 때 채워넣는 크기
+#   obs_eef_target: ${task.obs_eef_target}
+#   use_manual_normalizer: False
+#   seed: 42
+#   val_ratio: 0.02
+
+
+
+name: stack_lowdim
+
+obs_dim: 48
+action_dim: 7
+keypoint_dim: 2
+obs_eef_target: True
+
+env_runner:
+  _target_: diffusion_policy.env_runner.stack_lowdim_runner.IsaacLabStackLowdimRunner
+  n_envs: 1
+  # max_steps: 350
+  max_steps: 500
+  n_obs_steps: ${n_obs_steps}
+  n_action_steps: ${n_action_steps}
+  device: cuda:0
+  abs_action: False 
+
+
+dataset:
+  _target_: diffusion_policy.dataset.stack_lowdim_dataset.StackLowdimDataset
+  zarr_path: data/stack/multimodal_push_seed.zarr
+  horizon: ${horizon}
+  pad_before: ${eval:'${n_obs_steps}-1'}
+  pad_after: ${eval:'${n_action_steps}-1'}
+  obs_eef_target: ${task.obs_eef_target}
+  use_manual_normalizer: False
+  seed: 42
+  val_ratio: 0.02

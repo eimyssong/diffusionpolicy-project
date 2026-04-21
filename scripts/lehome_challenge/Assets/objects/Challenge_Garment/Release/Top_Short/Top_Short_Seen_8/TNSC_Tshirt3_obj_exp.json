@@ -1,0 +1,59 @@
+{
+    "id": 8,
+    "asset_path": "/Assets/objects/Challenge_Garment/Release/Top_Short/Top_Short_Seen_8/TNSC_Tshirt3_obj_exp.usd",
+    "visual_usd_paths": [
+        "/Assets/objects/Challenge_Garment/Release/Color_Texture/Fabric072_1K_JPG.usd"
+    ],
+    "scale": [
+        0.45,
+        0.45,
+        0.45
+    ],
+    "check_point": [
+        4221,
+        241,
+        8795,
+        2679,
+        5019,
+        996
+    ],
+    "initial_pos_range": [
+        -0.07,
+        -0.02,
+        0.63,
+        0.02,
+        0.02,
+        0.63
+    ],
+    "initial_rot_range": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "soft_reset_pos_range": [
+        -0.07,
+        -0.02,
+        0.67,
+        0.02,
+        0.02,
+        0.67
+    ],
+    "soft_reset_rot_range": [
+        -20,
+        -22,
+        0,
+        20,
+        22,
+        0
+    ],
+    "success_distance": [
+        15,
+        17,
+        15,
+        12,
+        12
+    ]
+}

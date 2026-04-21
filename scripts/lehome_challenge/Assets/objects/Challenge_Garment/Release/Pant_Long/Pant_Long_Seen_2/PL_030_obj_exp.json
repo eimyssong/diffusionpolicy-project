@@ -1,0 +1,58 @@
+{
+    "id": 2,
+    "asset_path": "/Assets/objects/Challenge_Garment/Release/Pant_Long/Pant_Long_Seen_2/PL_030_obj_exp.usd",
+    "visual_usd_paths": [
+        "/Assets/objects/Challenge_Garment/Release/Color_Texture/Tiles118_1K_JPG.usd"
+    ],
+    "scale": [
+        0.37,
+        0.37,
+        0.37
+    ],
+    "check_point": [
+        9329,
+        9361,
+        1672,
+        3894,
+        250,
+        3158
+    ],
+    "initial_pos_range": [
+        -0.04,
+        -0.07,
+        0.63,
+        0.04,
+        -0.03,
+        0.63
+    ],
+    "initial_rot_range": [
+        0,
+        0,
+        90,
+        0,
+        0,
+        90
+    ],
+    "soft_reset_pos_range": [
+        -0.04,
+        -0.07,
+        0.7,
+        0.04,
+        -0.03,
+        0.7
+    ],
+    "soft_reset_rot_range": [
+        -20,
+        -26,
+        90,
+        20,
+        26,
+        90
+    ],
+    "success_distance": [
+        23,
+        39,
+        30,
+        24
+    ]
+}
