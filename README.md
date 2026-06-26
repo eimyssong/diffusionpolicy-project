@@ -26,14 +26,21 @@ Moreover, Isaac Lab can run locally or be distributed across the cloud, offering
 
 A detailed description of Isaac Lab can be found in our [arXiv paper](https://arxiv.org/abs/2511.04831).
 
-## Local Customizations
+## Local Project Notes
 
 This checkout is based on the official Isaac Lab repository
 [`isaac-sim/IsaacLab`](https://github.com/isaac-sim/IsaacLab), but includes local project work that is not part of
 the official upstream. The comparison was checked against official `upstream/main` commit `b4c32102` and local
-`main` commit `50fc46e8`.
+base commit `50fc46e8`.
 
-### Added project areas
+The local work is currently recorded in these commits:
+
+- `65fa4a4f Document local IsaacLab customizations`
+- `94611409 Track DexGarmentLab files directly`
+
+### What was changed
+
+#### Added project areas
 
 - `piper_isaac_sim/`: Piper robot descriptions, meshes, URDF/Xacro files, RealSense assets, launch files, and usage
   notes for Isaac Sim integration.
@@ -41,13 +48,14 @@ the official upstream. The comparison was checked against official `upstream/mai
   configs, robomimic policy configs, and instance-randomization variants.
 - `source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/square/`: Piper square manipulation task,
   observations, terminations, events, robomimic configs, and randomized variants.
-- `scripts/DexGarmentLab`: DexGarmentLab integration entry tracked as a gitlink/submodule-style dependency.
+- `scripts/DexGarmentLab/`: DexGarmentLab code is tracked directly in this repository, not as a submodule. Large
+  asset, dataset, archive, and checkpoint files are intentionally ignored.
 - `scripts/lehome_challenge/`: LeHome garment challenge assets, task code, evaluation scripts, object configs, and
   failure-case videos.
 - `scripts/imitation_learning/datasets/DP3/`: Local DP3 stack datasets in Zarr format, including point clouds,
   actions, agent poses, generated dataset variants, and evaluation outputs.
 
-### Current local changes prepared for commit
+#### Main implementation changes
 
 - Docker setup is pinned to a local base image (`isaac-lab-base-es:latest`) and restricted to GPU `0`; DexGarmentLab
   data, assets, and checkpoint folders are excluded from Docker build context.
@@ -63,6 +71,79 @@ the official upstream. The comparison was checked against official `upstream/mai
   `pos=(1.3, 0.3, 0.4)`.
 - Local generated artifacts include updated DP3 `.zarr` datasets, deletion of old blockpush/stack evaluation outputs,
   and new LeHome failure videos under `scripts/lehome_challenge/video/failure/`.
+
+#### DexGarmentLab direct tracking policy
+
+`scripts/DexGarmentLab` was converted from a gitlink/submodule-style entry into normal tracked files in this repo.
+The following are excluded by `scripts/DexGarmentLab/.gitignore` and must be restored separately if needed:
+
+- `Assets/Garment`
+- `Assets/LeapMotion`
+- `Assets/Robots`
+- `Assets/Scene`
+- `Assets/Human`
+- `Data/*`, except `Data/*.py`
+- `Tool_Scripts`
+- `Texture_Generate.sh`
+- `pipeline.sh`
+- root-level `/*.py`
+- `tmp*`
+- `**/__pycache__/`
+- `*.zip`
+- `*.pth`
+
+Tracked DexGarmentLab content includes source code, configs, model definitions, download helper scripts, selected
+material assets, repository images, and small point-cloud/example files.
+
+### How to restore this workspace later
+
+1. Clone the project repository and check out the local branch:
+
+   ```bash
+   git clone https://github.com/eimyssong/isaacsim.git IsaacLab
+   cd IsaacLab
+   git checkout main
+   git log --oneline -3
+   ```
+
+   The expected local commits are `94611409` and `65fa4a4f` on top of `50fc46e8`.
+
+2. If you start from the official Isaac Lab repository instead, add this project repository as a remote and check out
+   the local branch:
+
+   ```bash
+   git remote add project https://github.com/eimyssong/isaacsim.git
+   git fetch project
+   git checkout -b project-main project/main
+   ```
+
+3. Restore DexGarmentLab large assets and datasets. These are not stored in git. From the repository root:
+
+   ```bash
+   cd scripts/DexGarmentLab
+   python Assets/assets_download.py
+   python Data/data_download.py
+   ```
+
+   The download scripts fetch zip archives from the `wayrise/DexGarmentLab` Hugging Face dataset. After download,
+   unzip the archives into the same `scripts/DexGarmentLab` layout if they are not extracted automatically.
+
+4. Restore DP3 and LeHome local datasets or outputs if they are missing. Some generated `.zarr`, evaluation video, and
+   failure-video artifacts are committed, but very large local-only experiment outputs should be restored from the
+   experiment storage used when they were generated.
+
+5. Restore the local Docker/runtime assumptions:
+
+   - `docker/Dockerfile.base` expects a local image named `isaac-lab-base-es:latest`.
+   - `docker/docker-compose.yaml` is configured to use GPU `0`.
+   - If that local image does not exist, rebuild it or change the Dockerfile back to the official Isaac Sim base image
+     arguments before running Docker.
+
+6. Reinstall dependencies as needed for each workflow:
+
+   - Isaac Lab dependencies follow the official installation instructions below.
+   - DexGarmentLab Python requirements are listed in `scripts/DexGarmentLab/requirements.txt`.
+   - LeHome evaluation uses Weights & Biases logging, so configure W&B or run it in offline/disabled mode as needed.
 
 ## Key Features
 
