@@ -131,6 +131,51 @@ A detailed description of Isaac Lab can be found in our [arXiv paper](https://ar
    - DexGarmentLab dependency는 `scripts/DexGarmentLab/requirements.txt`를 사용한다.
    - LeHome evaluation은 W&B를 사용하므로, 로그인하거나 offline/disabled mode로 실행한다.
 
+### 전체 복원 주의점
+
+- GitHub에 올린 저장소와 로컬 저장소가 같은지 먼저 확인한다. 이 작업을 `intern.git`에 올릴 계획이면 remote는
+  `https://github.com/eimyssong/intern.git`이어야 한다.
+
+  ```bash
+  git remote -v
+  git branch --show-current
+  git status
+  ```
+
+- 이 README에 적힌 최신 복원 정보까지 포함하려면 `946ee54e Add Korean local restore guide` 이후 커밋까지 push되어야 한다.
+  GitHub에서 README가 예전 내용으로 보이면 아직 push가 안 된 것이다.
+
+- `scripts/DexGarmentLab/`는 더 이상 submodule이 아니다. 따라서 복원 후 `git submodule update --init --recursive`로
+  DexGarmentLab가 복구되는 구조가 아니다. DexGarmentLab 코드는 이 저장소에 일반 파일로 들어 있고, 제외된 asset/data만
+  별도로 다운로드해야 한다.
+
+- DexGarmentLab 원본 내부 `.git` 디렉터리는 커밋 전에 제거했다. 기존 내부 git 메타데이터는 작업 당시
+  `/tmp/DexGarmentLab.git.backup`에 임시 백업했지만, `/tmp`는 재부팅이나 정리 작업으로 사라질 수 있다. 복원은 이 백업에
+  의존하지 말고 현재 저장소의 일반 파일과 다운로드 스크립트를 기준으로 한다.
+
+- `*.zip`, `*.pth`, DexGarmentLab의 주요 asset/data 폴더는 git에 없다. 새 장비에서 clone만 하면 모델 checkpoint,
+  garment asset, human/robot/scene asset, dataset zip은 없는 상태가 정상이다. 필요한 경우 Hugging Face download script나
+  별도 실험 저장소에서 다시 받아야 한다.
+
+- DP3 `.zarr` 데이터와 LeHome failure video 일부는 커밋에 포함되어 있지만, 모든 실험 산출물이 들어간 것은 아니다. 학습을
+  재현하려면 사용한 원본 HDF5, checkpoint, W&B run, 로컬 output 폴더를 별도로 확인해야 한다.
+
+- Docker 설정은 일반 Isaac Lab 기본값이 아니라 로컬 환경에 맞춰 바뀌어 있다. 특히 `isaac-lab-base-es:latest` 이미지와
+  GPU `0` 고정 설정이 맞지 않으면 Docker 실행이 실패한다.
+
+- GitHub push 권한은 계정 인증에 따라 달라진다. `Permission denied to siwon7` 같은 메시지가 나오면 현재 GitHub 인증 계정이
+  `eimyssong`이 아닌 것이다. `gh auth status`로 계정을 확인하고, 필요한 경우 `gh auth logout -h github.com` 후
+  `gh auth login -h github.com`으로 다시 로그인한다.
+
+- 복원 후 정상 여부는 아래 명령으로 먼저 확인한다.
+
+  ```bash
+  git status
+  git log --oneline -5
+  test -d scripts/DexGarmentLab
+  test -f scripts/DexGarmentLab/README.md
+  ```
+
 ## Local Project Notes
 
 This checkout is based on the official Isaac Lab repository
