@@ -205,6 +205,49 @@ class GarmentObject(SingleClothPrim):
             ),
         )
         self.num_count = 0
+        # ######################################################################################################
+        from pxr import UsdGeom
+
+        stage = omni.usd.get_context().get_stage()
+
+        print("\n========== DEBUG START ==========")
+        print("usd_prim_path:", self.usd_prim_path)
+        print("mesh_prim_path:", self.mesh_prim_path)
+
+        # 1. prim 직접 확인
+        prim = stage.GetPrimAtPath(self.mesh_prim_path)
+        print("Prim valid:", prim.IsValid())
+
+        if prim.IsValid():
+            print("Prim type:", prim.GetTypeName())
+            print("Prim path:", prim.GetPath())
+
+            # 2. attribute 확인
+            attrs = prim.GetAttributes()
+            print("\nAttributes:")
+            for attr in attrs:
+                print("-", attr.GetName())
+
+            # 3. points 확인
+            points_attr = prim.GetAttribute("points")
+            print("\npoints attr exists:", bool(points_attr))
+
+            if points_attr and points_attr.HasValue():
+                pts = points_attr.Get()
+                print("points length:", len(pts) if pts else "None")
+            else:
+                print("points value: None")
+
+            # 4. children 확인
+            print("\nChildren:")
+            for child in prim.GetChildren():
+                print("-", child.GetPath(), child.GetTypeName())
+
+        else:
+            print("❌ Prim is INVALID")
+
+        print("========== DEBUG END ==========\n")
+        # ######################################################################################################
         # add particle cloth attribute to garment
         super().__init__(
             name=self.usd_prim_path,
@@ -232,7 +275,6 @@ class GarmentObject(SingleClothPrim):
                 "spring_damping", None
             ),
         )
-
         if self.visual_usd_paths:
             logger.debug(
                 f"[GarmentObject] Applying {len(self.visual_usd_paths)} visual materials"
@@ -535,7 +577,6 @@ class GarmentObject(SingleClothPrim):
 
             # Add the USD as a reference to the Stage
             add_reference_to_stage(usd_path=path, prim_path=mat_prim_path)
-
             # Resolve the actual Shader path used for binding
             vis_prim = prims_utils.get_prim_at_path(mat_prim_path)
             # Assume the material USD structure has a Shader/Material Prim under a parent node

@@ -11,7 +11,7 @@ class ChallengeGarmentLoader:
     garments (long-sleeve top, short-sleeve top, long pants, short pants).
     """
 
-    def __init__(self, base_path: str = "/workspace/isaaclab/scripts/lehome_challenge/Assets/objects/Challenge_Garment"):
+    def __init__(self, base_path: str = "/scripts/lehome_challenge/Assets/objects/Challenge_Garment"):
         """Initialize ChallengeGarmentLoader.
 
         Args:
@@ -137,7 +137,7 @@ class ChallengeGarmentLoader:
 
 if __name__ == "__main__":
     # test the ChallengeGarmentLoader
-    loader = ChallengeGarmentLoader(base_path="/workspace/isaaclab/scripts/lehome_challenge/Assets/objects/Challenge_Garment")
+    loader = ChallengeGarmentLoader(base_path="/scripts/lehome_challenge/Assets/objects/Challenge_Garment")
     config = loader.load_garment_config("Top_Long_Unseen_0")
     print(config)
     config = loader.load_garment_config("Top_Short_Seen_1")

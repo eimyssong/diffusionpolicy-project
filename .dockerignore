@@ -28,3 +28,9 @@ _isaac_sim?
 docker/.isaac-lab-docker-history
 # ignore uv environment
 env_isaaclab
+
+
+scripts/DexGarmentLab/Model_HALO/SADP/checkpoints/
+scripts/DexGarmentLab/Model_HALO/SADP_G/checkpoints/
+scripts/DexGarmentLab/Data/
+scripts/DexGarmentLab/Assets/

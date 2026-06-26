@@ -25,6 +25,10 @@ def main():
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
     simulation_app = launch_app_from_args(args)
+
+    from isaacsim.core.simulation_manager import SimulationManager
+    SimulationManager.enable_gpu_dynamics(True)
+
     try:
         import scripts.lehome_challenge.source.lehome.lehome.tasks.bedroom
         from scripts.lehome_challenge.scripts.utils.evaluation import eval

@@ -27,6 +27,9 @@ from lerobot.datasets.lerobot_dataset import LeRobotDataset
 from .common import stabilize_garment_after_reset
 from scripts.lehome_challenge.source.lehome.lehome.utils.logger import get_logger
 
+import wandb
+import time
+
 logger = get_logger(__name__)
 
 
@@ -156,6 +159,10 @@ def run_evaluation_loop(
             # 6. Step Environment
             env.step(action)
 
+            # print("action:", action)
+            # print(action.min(), action.max())
+
+
             # Check success first
             if not success_flag:
                 success = env._get_success()
@@ -229,6 +236,16 @@ def run_evaluation_loop(
         all_episode_metrics.append(
             {"return": episode_return, "length": episode_length, "success": is_success}
         )
+
+        wandb.log(
+            {
+                "episode/return": episode_return,
+                "episode/length": episode_length,
+                "episode/success": float(is_success),
+                "episode/index": i,
+            }
+        )
+
         logger.info(
             f"Episode {i + 1}/{args.num_episodes}: Return={episode_return:.2f}, Length={episode_length}, Success={is_success}"
         )
@@ -237,12 +254,18 @@ def run_evaluation_loop(
 
 
 def eval(args: argparse.Namespace, simulation_app: Any) -> None:
+    wandb.init(
+        project="lehome-eval",
+        name=f"{args.policy_type}_{args.task}_{args.garment_type}_{time.strftime('%Y%m%d_%H%M%S')}",
+        config=vars(args),
+    )
     """
     Main entry point for evaluation logic.
     """
     # 1. Environment Configuration
     env_cfg = parse_env_cfg(args.task, device=args.device)
     env_cfg.sim.use_fabric = False
+    # env_cfg.sim.use_fabric = True
     if args.use_random_seed:
         env_cfg.use_random_seed = True
     else:
@@ -369,6 +392,10 @@ def eval(args: argparse.Namespace, simulation_app: Any) -> None:
     env_cfg.garment_name = first_name
     env_cfg.garment_version = first_stage
     env = gym.make(args.task, cfg=env_cfg).unwrapped
+
+    from isaacsim.core.simulation_manager import SimulationManager
+    SimulationManager.enable_gpu_dynamics(True)
+
     env.initialize_obs()
 
     try:
@@ -437,9 +464,24 @@ def eval(args: argparse.Namespace, simulation_app: Any) -> None:
             logger.info(
                 f"  {garment_name}: Success Rate = {success_rate:.2%}, Avg Return = {avg_return:.2f}"
             )
+            wandb.log(
+                {
+                    "garment/success_rate": success_rate,
+                    "garment/avg_return": avg_return,
+                    "garment/name": garment_name,
+                }
+            )
     else:
         logger.info("No metrics collected (all evaluations failed)")
 
     logger.info("=" * 60)
     logger.info("Evaluation completed successfully")
+    wandb.log(
+        {
+            "final/mean_success_rate": np.mean([m["success"] for m in all_episodes]) if all_episodes else 0.0,
+            "final/mean_return": np.mean([m["return"] for m in all_episodes]) if all_episodes else 0.0,
+            "final/num_episodes": len(all_episodes),
+        }
+    )
     logger.info("=" * 60)
+    wandb.finish()

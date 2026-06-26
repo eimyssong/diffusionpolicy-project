@@ -26,6 +26,12 @@ from scripts.lehome_challenge.source.lehome.lehome.assets.object.Garment import 
 from scripts.lehome_challenge.source.lehome.lehome.tasks.bedroom.challenge_garment_loader import ChallengeGarmentLoader
 import logging
 from scripts.lehome_challenge.source.lehome.lehome.utils.logger import get_logger
+from pxr import (
+    UsdPhysics,
+    PhysxSchema,
+    UsdGeom,
+)
+import omni.usd
 
 # Create logger for this module with DEBUG level
 logger = get_logger(__name__)
@@ -63,6 +69,43 @@ class GarmentEnv(DirectRLEnv):
         self.left_joint_pos = self.left_arm.data.joint_pos
         self.right_joint_pos = self.right_arm.data.joint_pos
 
+
+    def _apply_sdf_to_all_meshes(self):
+        from pxr import UsdPhysics, PhysxSchema, UsdGeom, Sdf
+        stage = omni.usd.get_context().get_stage()
+        
+        logger.info(">>> STARTING GLOBAL SDF INJECTION <<<")
+
+        for prim in stage.TraverseAll():
+            # 메시가 아니면 통과
+            if not prim.IsA(UsdGeom.Mesh):
+                continue
+            
+            # 1. 일단 충돌 API가 있는지 확인하고 없으면 붙임
+            if not prim.HasAPI(UsdPhysics.CollisionAPI):
+                UsdPhysics.CollisionAPI.Apply(prim)
+
+            # 2. [에러 해결의 핵심] 모든 메쉬를 SDF 기반으로 변경
+            # Triangle Mesh -> SDF Mesh로 강제 전환
+            mesh_collision = UsdPhysics.MeshCollisionAPI.Apply(prim)
+            mesh_collision.GetApproximationAttr().Set("sdf") #
+
+            # 3. SDF 해상도 설정 (256이 국룰입니다)
+            physx_collision = PhysxSchema.PhysxTriangleMeshCollisionAPI.Apply(prim)
+            physx_collision.CreateSdfResolutionAttr().Set(256) #
+            
+            # 4. 바닥이나 테이블 같은 정적 물체는 가급적 Kinematic으로 명시
+            # (이렇게 하면 SDF 에러가 아예 안 날 확률이 높습니다)
+            path = str(prim.GetPath())
+            if "Ground" in path or "Table" in path:
+                if not prim.HasAPI(PhysxSchema.PhysxRigidBodyAPI):
+                    PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
+                PhysxSchema.PhysxRigidBodyAPI(prim).GetKinematicEnabledAttr().Set(True)
+
+        logger.info(">>> GLOBAL SDF INJECTION COMPLETE <<<")
+
+
+
     def _setup_scene(self):
         self.left_arm = Articulation(self.cfg.left_robot)
         self.right_arm = Articulation(self.cfg.right_robot)
@@ -77,20 +120,11 @@ class GarmentEnv(DirectRLEnv):
             orientation=(0.0, 0.0, 0.0, 0.0),
         )
 
-        from pxr import UsdGeom
-        from omni.usd import get_context
-
-        # USD stage 가져오기
-        stage = get_context().get_stage()
-
-        # /World/Object 존재 여부 확인
-        if not is_prim_path_valid("/World/Object"):
-            UsdGeom.Xform.Define(stage, "/World/Object")
-            print("[DEBUG] /World/Object Xform 생성 완료")
-
-
         # Create garment object with selected asset
         self._create_garment_object()
+
+
+        self._apply_sdf_to_all_meshes()
 
         # add articulation to scene
         self.scene.articulations["left_arm"] = self.left_arm
@@ -102,491 +136,116 @@ class GarmentEnv(DirectRLEnv):
         light_cfg = sim_utils.DomeLightCfg(intensity=1200, color=(0.75, 0.75, 0.75))
         light_cfg.func("/World/Light", light_cfg)
 
-    # def _create_garment_object(self):
-    #     """
-    #     Create a new GarmentObject with the currently selected asset.
-    #     """
-    #     if self.object is not None:
-    #         self._delete_garment_object()
 
-    #     # Generate prim_path based on garment_name, default to "Cloth" if not specified
-    #     garment_name = getattr(self.cfg, "garment_name", None)
-    #     if garment_name and garment_name.strip():
-    #         prim_name = garment_name.strip()
-    #     else:
-    #         prim_name = "Cloth"
-
-    #     prim_path = f"/World/Object/{prim_name}"
-
-    #     try:
-    #         if is_prim_path_valid(prim_path):
-    #             logger.debug(
-    #                 f"[GarmentEnv] Prim path {prim_path} still exists, deleting before creation"
-    #             )
-    #             omni.kit.commands.execute("DeletePrims", paths=[prim_path])
-    #             if hasattr(self, "sim") and self.sim is not None:
-    #                 for _ in range(50):
-    #                     self.sim.step(render=True)
-    #             if is_prim_path_valid(prim_path):
-    #                 logger.warning(
-    #                     f"[GarmentEnv] WARNING: Prim path {prim_path} still exists after deletion attempt!"
-    #                 )
-    #             else:
-    #                 logger.debug(
-    #                     f"[GarmentEnv] Prim path {prim_path} successfully deleted"
-    #                 )
-    #     except Exception as e:
-    #         logger.debug(
-    #             f"[GarmentEnv] Could not delete existing prim (may not exist): {e}"
-    #         )
-
-
-    #     from pxr import UsdGeom
-    #     import omni.kit.app
-
-
-    #     stage = omni.usd.get_context().get_stage()
-
-    #     # 1. 기존 Prim 삭제 (이미 하신 로직)
-    #     if is_prim_path_valid(prim_path):
-    #         omni.kit.commands.execute("DeletePrims", paths=[prim_path])
-    #         # 삭제가 반영되도록 한 프레임 업데이트
-    #         omni.kit.app.get_app().update()
-
-    #     # 2. USD 상에 Mesh Prim을 미리 정의
-    #     # GarmentObject가 내부적으로 이 Mesh를 Cloth로 변환할 것으로 예상됩니다.
-    #     UsdGeom.Mesh.Define(stage, prim_path)
-        
-    #     # 3. 중요: Stage를 강제로 업데이트하여 Isaac Sim이 새 Prim을 인식하게 함
-    #     omni.kit.app.get_app().update()
-
-
-
-    #     # Create new garment object
-    #     try:
-    #         logger.debug(
-    #             f"[GarmentEnv] Creating GarmentObject at prim_path: {prim_path}"
-    #         )
-    #         self.object = GarmentObject(
-    #             prim_path=prim_path,
-    #             particle_config=self.particle_config,
-    #             garment_config=self.garment_config,
-    #             rng=self.garment_rng,
-    #         )
-    #         logger.info("[GarmentEnv] GarmentObject created successfully")
-    #     except Exception as e:
-    #         logger.error(f"[GarmentEnv] Failed to create GarmentObject: {e}")
-    #         raise RuntimeError(f"Failed to create GarmentObject: {e}") from e
-
-    #     # Validate created object
-    #     self._validate_created_object()
-
-    #     self.texture_cfg = self.particle_config.objects.get("texture_randomization", {})
-    #     self.light_cfg = self.particle_config.objects.get("light_randomization", {})
-    #     logger.debug(
-    #         f"[GarmentEnv] Loaded texture_cfg: {bool(self.texture_cfg)}, light_cfg: {bool(self.light_cfg)}"
-    #     )
-
-
-
-    # def _create_garment_object(self):
-    #     prim_name = getattr(self.cfg, "garment_name", "Cloth")
-    #     prim_path = f"/World/Object/{prim_name}"
-        
-    #     # 1. 기존 Prim 제거 (명령어 대신 유틸리티 함수 사용이 더 안정적일 수 있음)
-    #     if is_prim_path_valid(prim_path):
-    #         prims_utils.delete_prim(prim_path)
-    #         # 삭제 후 엔진 업데이트
-    #         for _ in range(2):
-    #             omni.kit.app.get_app().update()
-
-    #     # 2. Garment Asset 경로 확인 (garment_config 내에 있을 확률이 높습니다)
-    #     # 예: self.garment_config.usd_path 또는 self.garment_config.asset_path
-    #     asset_path = getattr(self.garment_config, "usd_path", None) 
-        
-    #     try:
-    #         logger.debug(f"[GarmentEnv] Creating prim at {prim_path} with asset {asset_path}")
-            
-    #         # 3. Isaac Sim 유틸리티로 Prim 생성
-    #         # asset_path가 있다면 해당 파일을 로드하고, 없다면 Mesh 타입으로 생성합니다.
-    #         prims_utils.create_prim(
-    #             prim_path=prim_path,
-    #             prim_type="Mesh",
-    #             usd_path=asset_path  # 이 부분이 핵심입니다!
-    #         )
-
-    #         # 4. 생성 직후 유효성 검사 (디버깅용)
-    #         stage = omni.usd.get_context().get_stage()
-    #         created_prim = stage.GetPrimAtPath(prim_path)
-    #         if not created_prim.IsValid():
-    #             raise RuntimeError(f"Prim at {prim_path} is still invalid after creation!")
-
-    #         # 5. 충분한 업데이트 (Fabric 동기화 대기)
-    #         for _ in range(5):
-    #             omni.kit.app.get_app().update()
-
-    #         # 6. GarmentObject 인스턴스화
-    #         self.object = GarmentObject(
-    #             prim_path=prim_path,
-    #             particle_config=self.particle_config,
-    #             garment_config=self.garment_config,
-    #             rng=self.garment_rng,
-    #         )
-    #         logger.info(f"[GarmentEnv] GarmentObject created successfully at {prim_path}")
-
-    #     except Exception as e:
-    #         logger.error(f"[GarmentEnv] Failed to create GarmentObject: {e}")
-    #         # 만약 여기서도 에러가 난다면, created_prim의 attribute들을 출력해보는 로그를 추가해보세요.
-    #         raise
-
-
-    # def _create_garment_object(self):
-    #     # 어떤 속성들이 있는지 출력해봅니다.
-    #     logger.info(f"[DEBUG] garment_config attributes: {dir(self.garment_config)}")
-    #     # 만약 dictionary 형태라면 keys를 확인합니다.
-    #     if hasattr(self.garment_config, "items"):
-    #         logger.info(f"[DEBUG] garment_config keys: {self.garment_config.keys()}")
-
-    #     prim_name = getattr(self.cfg, "garment_name", "Cloth")
-    #     prim_path = f"/World/Object/{prim_name}"
-        
-    #     # 1. 기존 Prim 확실히 제거
-    #     if is_prim_path_valid(prim_path):
-    #         prims_utils.delete_prim(prim_path)
-    #         # 삭제가 물리 엔진에 반영되도록 충분히 업데이트
-    #         for _ in range(5):
-    #             omni.kit.app.get_app().update()
-
-    #     # 2. 실제 옷 Asset 파일 경로 가져오기
-    #     # self.garment_config에 파일 경로가 저장되어 있을 것입니다. 
-    #     # (변수명은 환경에 따라 다를 수 있으니 확인해 보세요: 예: .usd_path, .asset_path 등)
-    #     asset_path = getattr(self.garment_config, "usd_path", None)
-        
-    #     if asset_path is None:
-    #         logger.error("[GarmentEnv] asset_path를 찾을 수 없습니다. garment_config를 확인하세요.")
-    #         return
-
-    #     # 3. Isaac Sim 유틸리티로 Prim 생성 (파일로부터 직접 로드)
-    #     prims_utils.create_prim(
-    #         prim_path=prim_path,
-    #         usd_path=asset_path, # 빈 메쉬 대신 실제 파일을 연결
-    #         translation=(0.0, 0.0, 1.0) # 생성 위치 조정 (필요 시)
-    #     )
-
-    #     # 4. 중요: 엔진이 자산을 완전히 로드하고 'points' 속성을 인식할 시간을 줌
-    #     # Fabric 경고가 뜨는 상황이므로 평소보다 더 많이 업데이트해 줍니다.
-    #     for _ in range(10):
-    #         omni.kit.app.get_app().update()
-
-    #     # 5. 초기화 전 최종 확인 (디버깅용)
-    #     stage = omni.usd.get_context().get_stage()
-    #     target_prim = stage.GetPrimAtPath(prim_path)
-    #     if target_prim.IsValid():
-    #         points_attr = target_prim.GetAttribute("points").Get()
-    #         if points_attr is None:
-    #             logger.warning(f"[GarmentEnv] {prim_path}의 points 데이터가 아직 로드되지 않았습니다!")
-        
-    #     # 6. 이제 Python 래퍼 인스턴스화
-    #     try:
-    #         self.object = GarmentObject(
-    #             prim_path=prim_path,
-    #             particle_config=self.particle_config,
-    #             garment_config=self.garment_config,
-    #             rng=self.garment_rng,
-    #         )
-    #         logger.info(f"[GarmentEnv] GarmentObject 생성 완료: {prim_path}")
-    #     except Exception as e:
-    #         logger.error(f"[GarmentEnv] 생성 중 다시 에러 발생: {e}")
-    #         raise
-
-    # def _create_garment_object(self):
-    #     prim_name = getattr(self.cfg, "garment_name", "Cloth")
-    #     parent_path = f"/World/Object/{prim_name}"
-        
-    #     # 1. 경로 변환 로직 (가상 경로 -> 실제 절대 경로)
-    #     raw_path = self.garment_config.get("asset_path") if hasattr(self.garment_config, "get") else getattr(self.garment_config, "asset_path", None)
-        
-    #     if raw_path and raw_path.startswith("/Assets"):
-    #         # 사용자가 확인해주신 절대 경로 기준점
-    #         base_path = "/workspace/isaaclab/scripts/lehome_challenge"
-    #         asset_path = base_path + raw_path
-    #     else:
-    #         asset_path = raw_path
-
-    #     logger.info(f"[GarmentEnv] Loading from absolute path: {asset_path}")
-
-    #     # 2. 파일 존재 여부 최종 확인
-    #     if not asset_path or not os.path.exists(asset_path):
-    #         logger.error(f"[GarmentEnv] ❌ 파일을 찾을 수 없습니다: {asset_path}")
-    #         return
-
-    #     # 3. 기존 Prim 제거 및 동기화
-    #     if is_prim_path_valid(parent_path):
-    #         prims_utils.delete_prim(parent_path)
-    #         for _ in range(5):
-    #             omni.kit.app.get_app().update()
-        
-    #     # 4. USD 로드 및 Payload 강제 활성화
-    #     stage = omni.usd.get_context().get_stage()
-    #     prims_utils.create_prim(prim_path=parent_path, usd_path=asset_path)
-
-    #     target_prim = stage.GetPrimAtPath(parent_path)
-    #     if target_prim.IsValid():
-    #         target_prim.SetInstanceable(False)
-    #         target_prim.Load() # Payload 강제 로드 (껍데기 현상 방지)
-        
-    #     # 5. [수정] 진짜 'mesh_1'을 찾을 때까지 자식 노드 심층 탐색
-    #     final_mesh_path = None
-    #     stage = omni.usd.get_context().get_stage()
-
-    #     # 1. [핵심] 모든 자식 노드의 인스턴싱 해제 (유령 노드 실체화)
-    #     def uninstance_all(prim):
-    #         if prim.IsInstanceable():
-    #             prim.SetInstanceable(False)
-    #         for child in prim.GetChildren():
-    #             uninstance_all(child)
-
-    #     parent_prim = stage.GetPrimAtPath(parent_path)
-    #     if parent_prim.IsValid():
-    #         uninstance_all(parent_prim)
-    #         logger.info(f"[GarmentEnv] All instances under {parent_path} have been un-instanced.")
-
-    #     # 2. [수정] 진짜 'mesh_1'을 포함한 모든 말단 노드 수색
-    #     final_mesh_path = None
-    #     for i in range(150):
-    #         omni.kit.app.get_app().update()
-            
-    #         all_mesh_candidates = []
-    #         for prim in stage.Traverse():
-    #             p_path = str(prim.GetPath())
-    #             if p_path.startswith(parent_path) and prim.HasAttribute("points"):
-    #                 all_mesh_candidates.append(p_path)
-            
-    #         if all_mesh_candidates:
-    #             # [강제 교정] 만약 /mesh만 잡혔다면, /mesh/mesh_1이 있는지 명시적으로 확인
-    #             best_so_far = max(all_mesh_candidates, key=len)
-    #             forced_path = f"{best_so_far}/mesh_1"
-                
-    #             if stage.GetPrimAtPath(forced_path).IsValid():
-    #                 final_mesh_path = forced_path
-    #                 logger.info(f"[GarmentEnv] ⚡ PhysX 타겟 경로 강제 교정 성공: {final_mesh_path}")
-    #             else:
-    #                 final_mesh_path = best_so_far
-                
-    #             # 최종 결정된 경로에서 데이터 확인
-    #             target_prim = stage.GetPrimAtPath(final_mesh_path)
-    #             pts_attr = target_prim.GetAttribute("points")
-    #             if pts_attr.HasValue() and pts_attr.Get() is not None:
-    #                 logger.info(f"[GarmentEnv] 🎯 최종 타겟 확정: {final_mesh_path} ({len(pts_attr.Get())} pts)")
-    #                 break
-
-    #     if not final_mesh_path:
-    #         logger.error("[GarmentEnv] ❌ 메쉬를 찾는 데 실패했습니다.")
-    #         return
-
-    #     # 3. [초강수] Stage 데이터 강제 로드 및 업데이트 대기
-    #     # 이 부분이 부족하면 'invalid null prim'이 뜹니다.
-    #     target_prim = stage.GetPrimAtPath(final_mesh_path)
-        
-    #     # 1) Fabric 동기화 및 물리 속성 정화
-    #     from pxr import PhysxSchema, UsdPhysics
-    #     if target_prim.HasAPI(UsdPhysics.RigidBodyAPI):
-    #         target_prim.RemoveAPI(UsdPhysics.RigidBodyAPI)
-        
-    #     PhysxSchema.PhysxParticleClothAPI.Apply(target_prim)
-        
-    #     # 2) [중요] 데이터를 건드려서 stage가 이 프림을 'Dirty'로 인식하게 만듦
-    #     current_pts = target_prim.GetAttribute("points").Get()
-    #     target_prim.GetAttribute("points").Set(current_pts)
-
-    #     # 3) 충분한 시뮬레이션 프레임 업데이트 (로딩 완료 보장)
-    #     for _ in range(100): # 60 -> 100으로 상향
-    #         omni.kit.app.get_app().update()
-
-    #     # 4. GarmentObject 생성
-    #     try:
-    #         logger.info(f"[GarmentEnv] Final Instantiation with path: {final_mesh_path}")
-    #         # 이 시점에서 final_mesh_path는 반드시 /mesh/mesh_1 이어야 함
-    #         self.object = GarmentObject(
-    #             prim_path=str(final_mesh_path), 
-    #             particle_config=self.particle_config,
-    #             garment_config=self.garment_config,
-    #             rng=self.garment_rng,
-    #         )
-    #         logger.info("[GarmentEnv] 🎉🎉🎉 드디어 성공!")
-
-    #     except Exception as e:
-    #         logger.error(f"[GarmentEnv] ❌ 생성 실패: {e}")
-    #         raise
 
 
     def _create_garment_object(self):
-        from pxr import PhysxSchema, UsdPhysics
-        prim_name = getattr(self.cfg, "garment_name", "Cloth")
-        parent_path = f"/World/Object/{prim_name}"
+        """
+        Create a new GarmentObject with the currently selected asset.
+        """
+        if self.object is not None:
+            self._delete_garment_object()
 
-        # -------------------------------
-        # 1. asset path 처리
-        # -------------------------------
-        raw_path = (
-            self.garment_config.get("asset_path")
-            if hasattr(self.garment_config, "get")
-            else getattr(self.garment_config, "asset_path", None)
-        )
-
-        if raw_path and raw_path.startswith("/Assets"):
-            base_path = "/workspace/isaaclab/scripts/lehome_challenge"
-            asset_path = base_path + raw_path
+        # Generate prim_path based on garment_name, default to "Cloth" if not specified
+        garment_name = getattr(self.cfg, "garment_name", None)
+        if garment_name and garment_name.strip():
+            prim_name = garment_name.strip()
         else:
-            asset_path = raw_path
+            prim_name = "Cloth"
 
-        logger.info(f"[GarmentEnv] Loading from absolute path: {asset_path}")
+        prim_path = f"/World/Object/{prim_name}"
 
-        if not asset_path or not os.path.exists(asset_path):
-            logger.error(f"[GarmentEnv] ❌ 파일 없음: {asset_path}")
-            return
-
-        # -------------------------------
-        # 2. 기존 prim 제거
-        # -------------------------------
-        if is_prim_path_valid(parent_path):
-            prims_utils.delete_prim(parent_path)
-            for _ in range(10):
-                omni.kit.app.get_app().update()
-
-        # -------------------------------
-        # 3. USD 로드
-        # -------------------------------
-        stage = omni.usd.get_context().get_stage()
-        prims_utils.create_prim(prim_path=parent_path, usd_path=asset_path)
-
-        parent_prim = stage.GetPrimAtPath(parent_path)
-
-        # -------------------------------
-        # 4. 모든 prim 강제 Load + instance 해제
-        # -------------------------------
-        def force_load_and_uninstance(prim):
-            prim.Load()
-            if prim.IsInstanceable():
-                prim.SetInstanceable(False)
-            for child in prim.GetChildren():
-                force_load_and_uninstance(child)
-
-        if parent_prim.IsValid():
-            force_load_and_uninstance(parent_prim)
-
-        logger.info(f"[GarmentEnv] All prims loaded & uninstanced")
-
-        # -------------------------------
-        # 5. mesh 탐색 함수
-        # -------------------------------
-        def find_mesh():
-            candidates = []
-            for prim in stage.Traverse():
-                p = str(prim.GetPath())
-                if p.startswith(parent_path) and prim.HasAttribute("points"):
-                    candidates.append(p)
-            if not candidates:
-                return None
-            return max(candidates, key=len)
-
-        # -------------------------------
-        # 6. usable mesh 체크
-        # -------------------------------
-        def is_usable_mesh(prim):
-            if not prim or not prim.IsValid():
-                return False
-            attr = prim.GetAttribute("points")
-            if not attr or not attr.HasValue():
-                return False
-            pts = attr.Get()
-            if pts is None or len(pts) == 0:
-                return False
-            return True
-
-        # -------------------------------
-        # 7. mesh 찾기 + 로딩 대기
-        # -------------------------------
-        final_mesh_path = None
-
-        for i in range(300):
-            omni.kit.app.get_app().update()
-
-            path = find_mesh()
-            if not path:
-                continue
-
-            prim = stage.GetPrimAtPath(path)
-
-            if is_usable_mesh(prim):
-                final_mesh_path = path
-                pts = prim.GetAttribute("points").Get()
-                logger.info(f"[GarmentEnv] 🎯 mesh 확정: {path} ({len(pts)} pts)")
-
-                # 🔥 강제 교정
-                forced_path = path + "/mesh_1"
-                if stage.GetPrimAtPath(forced_path).IsValid():
-                    logger.info(f"[GarmentEnv] ⚡ mesh_1로 교정: {forced_path}")
-                    final_mesh_path = forced_path
-                else:
-                    final_mesh_path = path
-                break
-
-        if not final_mesh_path:
-            logger.error("[GarmentEnv] ❌ mesh 못 찾음")
-            return
-
-        # -------------------------------
-        # 8. prim 다시 가져오기 (중요)
-        # -------------------------------
-        target_prim = stage.GetPrimAtPath(final_mesh_path)
-
-        # -------------------------------
-        # 9. 기존 물리 제거
-        # -------------------------------
-        if target_prim.HasAPI(UsdPhysics.RigidBodyAPI):
-            target_prim.RemoveAPI(UsdPhysics.RigidBodyAPI)
-
-        # -------------------------------
-        # 10. PhysX Cloth 적용
-        # -------------------------------
-        PhysxSchema.PhysxParticleClothAPI.Apply(target_prim)
-
-        # -------------------------------
-        # 11. Fabric sync 대기 (핵심)
-        # -------------------------------
-        for _ in range(300):
-            omni.kit.app.get_app().update()
-
-        # -------------------------------
-        # 12. prim 다시 가져오기 (VERY IMPORTANT)
-        # -------------------------------
-        target_prim = stage.GetPrimAtPath(final_mesh_path)
-
-        if not is_usable_mesh(target_prim):
-            logger.error("[GarmentEnv] ❌ PhysX 이후 prim invalid")
-            return
-
-        # -------------------------------
-        # 13. GarmentObject 생성
-        # -------------------------------
         try:
-            logger.info(f"[GarmentEnv] Final Instantiation: {final_mesh_path}")
+            if is_prim_path_valid(prim_path):
+                logger.debug(
+                    f"[GarmentEnv] Prim path {prim_path} still exists, deleting before creation"
+                )
+                omni.kit.commands.execute("DeletePrims", paths=[prim_path])
+                if hasattr(self, "sim") and self.sim is not None:
+                    for _ in range(5):
+                        self.sim.step(render=True)
+                if is_prim_path_valid(prim_path):
+                    logger.warning(
+                        f"[GarmentEnv] WARNING: Prim path {prim_path} still exists after deletion attempt!"
+                    )
+                else:
+                    logger.debug(
+                        f"[GarmentEnv] Prim path {prim_path} successfully deleted"
+                    )
+        except Exception as e:
+            logger.debug(
+                f"[GarmentEnv] Could not delete existing prim (may not exist): {e}"
+            )
 
+        # Create new garment object
+        try:
+            logger.debug(
+                f"[GarmentEnv] Creating GarmentObject at prim_path: {prim_path}"
+            )
             self.object = GarmentObject(
-                prim_path=str(final_mesh_path),
+                prim_path=prim_path,
                 particle_config=self.particle_config,
                 garment_config=self.garment_config,
                 rng=self.garment_rng,
             )
-
-            logger.info("[GarmentEnv] 🎉 성공")
-
+            logger.info("[GarmentEnv] GarmentObject created successfully")
         except Exception as e:
-            logger.error(f"[GarmentEnv] ❌ 생성 실패: {e}")
-            raise
+            logger.error(f"[GarmentEnv] Failed to create GarmentObject: {e}")
+            raise RuntimeError(f"Failed to create GarmentObject: {e}") from e
 
+        # Validate created object
+        self._validate_created_object()
 
+        self.texture_cfg = self.particle_config.objects.get("texture_randomization", {})
+        self.light_cfg = self.particle_config.objects.get("light_randomization", {})
+        logger.debug(
+            f"[GarmentEnv] Loaded texture_cfg: {bool(self.texture_cfg)}, light_cfg: {bool(self.light_cfg)}"
+        )
+
+    def _validate_created_object(self):
+        """
+        Validate that the GarmentObject was created successfully and has required attributes.
+
+        Raises:
+            RuntimeError: If object validation fails
+        """
+        logger.debug("[GarmentEnv] Validating created GarmentObject...")
+
+        if self.object is None:
+            raise RuntimeError("GarmentObject creation returned None")
+
+        required_attrs = [
+            "usd_prim_path",
+            "mesh_prim_path",
+            "particle_system_path",
+            "particle_material_path",
+        ]
+
+        for attr in required_attrs:
+            if not hasattr(self.object, attr):
+                raise RuntimeError(f"GarmentObject missing required attribute: {attr}")
+
+            attr_value = getattr(self.object, attr)
+            if attr_value is None:
+                raise RuntimeError(f"GarmentObject attribute {attr} is None")
+
+        prim_paths_to_check = [
+            ("usd_prim_path", self.object.usd_prim_path),
+            ("mesh_prim_path", self.object.mesh_prim_path),
+        ]
+
+        for path_name, path_value in prim_paths_to_check:
+            if not is_prim_path_valid(path_value):
+                logger.warning(
+                    f"[GarmentEnv] Prim path {path_name} '{path_value}' is not valid in stage. "
+                    "This may be expected if the prim hasn't been added yet."
+                )
+            else:
+                logger.debug(
+                    f"[GarmentEnv] Prim path {path_name} '{path_value}' is valid"
+                )
+
+        logger.debug("[GarmentEnv] GarmentObject validation passed")
 
     def _delete_garment_object(self):
         """Delete the current garment object from the stage.

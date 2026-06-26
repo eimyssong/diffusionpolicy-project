@@ -26,6 +26,44 @@ Moreover, Isaac Lab can run locally or be distributed across the cloud, offering
 
 A detailed description of Isaac Lab can be found in our [arXiv paper](https://arxiv.org/abs/2511.04831).
 
+## Local Customizations
+
+This checkout is based on the official Isaac Lab repository
+[`isaac-sim/IsaacLab`](https://github.com/isaac-sim/IsaacLab), but includes local project work that is not part of
+the official upstream. The comparison was checked against official `upstream/main` commit `b4c32102` and local
+`main` commit `50fc46e8`.
+
+### Added project areas
+
+- `piper_isaac_sim/`: Piper robot descriptions, meshes, URDF/Xacro files, RealSense assets, launch files, and usage
+  notes for Isaac Sim integration.
+- `source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/stack/config/piper/`: Piper-specific stack task
+  configs, robomimic policy configs, and instance-randomization variants.
+- `source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/square/`: Piper square manipulation task,
+  observations, terminations, events, robomimic configs, and randomized variants.
+- `scripts/DexGarmentLab`: DexGarmentLab integration entry tracked as a gitlink/submodule-style dependency.
+- `scripts/lehome_challenge/`: LeHome garment challenge assets, task code, evaluation scripts, object configs, and
+  failure-case videos.
+- `scripts/imitation_learning/datasets/DP3/`: Local DP3 stack datasets in Zarr format, including point clouds,
+  actions, agent poses, generated dataset variants, and evaluation outputs.
+
+### Current local changes prepared for commit
+
+- Docker setup is pinned to a local base image (`isaac-lab-base-es:latest`) and restricted to GPU `0`; DexGarmentLab
+  data, assets, and checkpoint folders are excluded from Docker build context.
+- DP3 evaluation was extended with RGB plus point-cloud saliency rendering, SmoothGrad-style point-cloud saliency, and
+  video export for inspection.
+- DP3 conversion and training config were adjusted for `dataset15.hdf5`, single-rollout evaluation, and no last
+  checkpoint saving.
+- LeHome evaluation now initializes Weights & Biases logging, logs per-episode and per-garment metrics, enables GPU
+  dynamics, and records final aggregate metrics.
+- LeHome garment loading paths were adapted to `/scripts/lehome_challenge/...`, garment texture paths were made
+  absolute for that layout, and garment creation was simplified with validation after object construction.
+- Franka stack visuomotor camera placement was changed from the prior `dataset14` height setting to
+  `pos=(1.3, 0.3, 0.4)`.
+- Local generated artifacts include updated DP3 `.zarr` datasets, deletion of old blockpush/stack evaluation outputs,
+  and new LeHome failure videos under `scripts/lehome_challenge/video/failure/`.
+
 ## Key Features
 
 Isaac Lab offers a comprehensive set of tools and environments designed to facilitate robot learning:

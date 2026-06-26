@@ -2,6 +2,11 @@
 num_envs: 1  # Number of parallel environments to run simultaneously
 env_offset: [1.0, 1.0, 0.0]  # Spatial offset for parallel environments (x,y,z) to prevent overlap between environments
 
+# sim:
+#   physx:
+#     use_gpu: true
+#     enable_gpu_dynamics: true
+
 room:
   prim_path_prefix: "/Room_{env_id}"  # Path prefix for room prims in the stage; {env_id} is replaced with the environment index (e.g., "/Room_0")
 
@@ -57,7 +62,7 @@ objects:
   # Texture randomization configuration
   texture_randomization:
     enable: False
-    folder: "Assets/textures/surface"
+    folder: "/scripts/lehome_challenge/Assets/textures/surface"
     min_id: 1
     max_id: 100
     prim_path: "/World/Scene/scene/Table038/looks/M_Table038a/UsdPreviewSurface/________7/________7"

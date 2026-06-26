@@ -1,8 +1,8 @@
 {
     "id": 1,
-    "asset_path": "/Assets/objects/Challenge_Garment/Release/Top_Long/Top_Long_Unseen_1/TCLC_015_obj_exp.usd",
+    "asset_path": "/scripts/lehome_challenge/Assets/objects/Challenge_Garment/Release/Top_Long/Top_Long_Unseen_1/TCLC_015_obj_exp.usd",
     "visual_usd_paths": [
-        "/Assets/objects/Challenge_Garment/Release/Color_Texture/Fabric082B_1K_JPG.usd"
+        "/scripts/lehome_challenge/Assets/objects/Challenge_Garment/Release/Color_Texture/Fabric082B_1K_JPG.usd"
     ],
     "scale": [
         0.45,

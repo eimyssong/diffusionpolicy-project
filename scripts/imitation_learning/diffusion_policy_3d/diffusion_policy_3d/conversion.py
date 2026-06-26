@@ -92,7 +92,7 @@ def convert(hdf5_path, zarr_path):
     meta_group.create_dataset("episode_ends", data=np.array(episode_ends, dtype=np.int64))
 
 if __name__ == "__main__":
-    A = '/workspace/isaaclab/scripts/imitation_learning/datasets/DP3/dataset14.hdf5'
+    A = '/workspace/isaaclab/scripts/imitation_learning/datasets/DP3/dataset15.hdf5'
     B = '/workspace/isaaclab/scripts/imitation_learning/datasets/DP3/stack_image.zarr'
     convert(hdf5_path=A, zarr_path=B)
 
