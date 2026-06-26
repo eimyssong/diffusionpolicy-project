@@ -31,11 +31,14 @@ A detailed description of Isaac Lab can be found in our [arXiv paper](https://ar
 이 저장소는 공식 Isaac Lab(`https://github.com/isaac-sim/IsaacLab`)에서 시작했지만, 아래 로컬 작업들이 추가된 버전이다.
 공식 upstream 비교 기준은 `upstream/main`의 `b4c32102`이고, 로컬 작업 시작 기준은 `50fc46e8`이다.
 
-현재 로컬 작업은 다음 커밋들에 들어 있다.
+현재 로컬 작업은 다음 주요 커밋들에 들어 있다. README를 추가로 수정하면 더 최신 커밋이 앞에 생길 수 있으므로,
+최종 확인은 `git log --oneline -5`로 한다.
 
-- `65fa4a4f Document local IsaacLab customizations`
-- `94611409 Track DexGarmentLab files directly`
+- `1ddf9408 Add restore cautions to README`
+- `946ee54e Add Korean local restore guide`
 - `5b782dc8 Document local work and restore steps`
+- `94611409 Track DexGarmentLab files directly`
+- `65fa4a4f Document local IsaacLab customizations`
 
 ### 주요 작업 내용
 
@@ -92,9 +95,11 @@ A detailed description of Isaac Lab can be found in our [arXiv paper](https://ar
    git log --oneline -5
    ```
 
-   최소한 아래 커밋들이 보여야 한다.
+   최소한 아래 주요 커밋들이 보여야 한다. README를 나중에 다시 수정했다면 더 최신 커밋이 위에 추가로 있을 수 있다.
 
    ```text
+   1ddf9408 Add restore cautions to README
+   946ee54e Add Korean local restore guide
    5b782dc8 Document local work and restore steps
    94611409 Track DexGarmentLab files directly
    65fa4a4f Document local IsaacLab customizations
@@ -142,8 +147,8 @@ A detailed description of Isaac Lab can be found in our [arXiv paper](https://ar
   git status
   ```
 
-- 이 README에 적힌 최신 복원 정보까지 포함하려면 `946ee54e Add Korean local restore guide` 이후 커밋까지 push되어야 한다.
-  GitHub에서 README가 예전 내용으로 보이면 아직 push가 안 된 것이다.
+- 이 README에 적힌 최신 복원 정보까지 포함하려면 최소 `1ddf9408 Add restore cautions to README`까지, 그리고 그 이후
+  README를 추가로 수정한 최신 커밋까지 push되어야 한다. GitHub에서 README가 예전 내용으로 보이면 아직 push가 안 된 것이다.
 
 - `scripts/DexGarmentLab/`는 더 이상 submodule이 아니다. 따라서 복원 후 `git submodule update --init --recursive`로
   DexGarmentLab가 복구되는 구조가 아니다. DexGarmentLab 코드는 이 저장소에 일반 파일로 들어 있고, 제외된 asset/data만
@@ -183,10 +188,14 @@ This checkout is based on the official Isaac Lab repository
 the official upstream. The comparison was checked against official `upstream/main` commit `b4c32102` and local
 base commit `50fc46e8`.
 
-The local work is currently recorded in these commits:
+The main local work is recorded in these commits. If this README is edited again, newer README-only commits may appear
+above them; use `git log --oneline -5` to confirm the current tip.
 
-- `65fa4a4f Document local IsaacLab customizations`
+- `1ddf9408 Add restore cautions to README`
+- `946ee54e Add Korean local restore guide`
+- `5b782dc8 Document local work and restore steps`
 - `94611409 Track DexGarmentLab files directly`
+- `65fa4a4f Document local IsaacLab customizations`
 
 ### What was changed
 
@@ -256,7 +265,8 @@ material assets, repository images, and small point-cloud/example files.
    git log --oneline -3
    ```
 
-   The expected local commits are `94611409` and `65fa4a4f` on top of `50fc46e8`.
+   The expected key local commits are `1ddf9408`, `946ee54e`, `5b782dc8`, `94611409`, and `65fa4a4f`
+   on top of `50fc46e8`. Newer README-only commits may appear above them if this file is updated again.
 
 2. If you start from the official Isaac Lab repository instead, add this project repository as a remote and check out
    the local branch:
