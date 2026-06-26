@@ -26,6 +26,111 @@ Moreover, Isaac Lab can run locally or be distributed across the cloud, offering
 
 A detailed description of Isaac Lab can be found in our [arXiv paper](https://arxiv.org/abs/2511.04831).
 
+## 내가 작업한 내용과 복원 방법
+
+이 저장소는 공식 Isaac Lab(`https://github.com/isaac-sim/IsaacLab`)에서 시작했지만, 아래 로컬 작업들이 추가된 버전이다.
+공식 upstream 비교 기준은 `upstream/main`의 `b4c32102`이고, 로컬 작업 시작 기준은 `50fc46e8`이다.
+
+현재 로컬 작업은 다음 커밋들에 들어 있다.
+
+- `65fa4a4f Document local IsaacLab customizations`
+- `94611409 Track DexGarmentLab files directly`
+- `5b782dc8 Document local work and restore steps`
+
+### 주요 작업 내용
+
+- `scripts/DexGarmentLab/`를 submodule 포인터가 아니라 이 저장소의 일반 파일로 직접 추적하도록 변경했다.
+- DexGarmentLab의 대형 asset, data, zip, checkpoint 파일은 git에 넣지 않고 `.gitignore`로 제외했다.
+- `piper_isaac_sim/`에 Piper robot description, mesh, URDF/Xacro, RealSense 관련 파일을 추가했다.
+- Piper용 stack/square manipulation task config와 robomimic config를 추가했다.
+- DP3 imitation learning 쪽에 stack dataset, point cloud 기반 evaluation, saliency video 저장 로직을 추가했다.
+- DP3 설정은 `dataset15.hdf5`, single rollout evaluation, last checkpoint 저장 비활성화 쪽으로 수정했다.
+- LeHome challenge evaluation에 W&B logging, GPU dynamics 설정, garment path 수정, garment object validation 로직을 추가했다.
+- Docker 설정은 로컬 이미지 `isaac-lab-base-es:latest`를 쓰고 GPU `0`만 사용하도록 바꿨다.
+- Franka stack visuomotor camera 위치를 `pos=(1.3, 0.3, 0.4)`로 수정했다.
+
+### DexGarmentLab에서 git에 넣지 않은 것
+
+다음 파일/폴더는 용량이 크거나 재생성/재다운로드 대상이라 git에서 제외했다.
+
+- `scripts/DexGarmentLab/Assets/Garment`
+- `scripts/DexGarmentLab/Assets/LeapMotion`
+- `scripts/DexGarmentLab/Assets/Robots`
+- `scripts/DexGarmentLab/Assets/Scene`
+- `scripts/DexGarmentLab/Assets/Human`
+- `scripts/DexGarmentLab/Data/*` 단, `Data/*.py`는 포함
+- `scripts/DexGarmentLab/Tool_Scripts`
+- `scripts/DexGarmentLab/Texture_Generate.sh`
+- `scripts/DexGarmentLab/pipeline.sh`
+- `scripts/DexGarmentLab/*.py`
+- `scripts/DexGarmentLab/tmp*`
+- `scripts/DexGarmentLab/**/__pycache__/`
+- `*.zip`
+- `*.pth`
+
+### 나중에 복원하는 방법
+
+1. 저장소를 clone한다.
+
+   ```bash
+   git clone https://github.com/eimyssong/intern.git IsaacLab
+   cd IsaacLab
+   git checkout main
+   ```
+
+   만약 `intern.git` 대신 기존 `isaacsim.git`에 올렸다면 아래 주소를 사용한다.
+
+   ```bash
+   git clone https://github.com/eimyssong/isaacsim.git IsaacLab
+   cd IsaacLab
+   git checkout main
+   ```
+
+2. 로컬 작업 커밋이 있는지 확인한다.
+
+   ```bash
+   git log --oneline -5
+   ```
+
+   최소한 아래 커밋들이 보여야 한다.
+
+   ```text
+   5b782dc8 Document local work and restore steps
+   94611409 Track DexGarmentLab files directly
+   65fa4a4f Document local IsaacLab customizations
+   ```
+
+3. DexGarmentLab 대형 asset과 dataset을 다시 받는다.
+
+   ```bash
+   cd scripts/DexGarmentLab
+   python Assets/assets_download.py
+   python Data/data_download.py
+   ```
+
+   이 스크립트는 Hugging Face의 `wayrise/DexGarmentLab` dataset에서 zip 파일을 받는다. 자동으로 압축이 풀리지 않으면,
+   받은 zip 파일들을 `scripts/DexGarmentLab` 구조에 맞게 직접 압축 해제한다.
+
+4. Docker를 쓸 경우 로컬 이미지가 필요하다.
+
+   ```text
+   isaac-lab-base-es:latest
+   ```
+
+   이 이미지가 없으면 Docker build가 실패할 수 있다. 그 경우 이미지를 다시 만들거나,
+   `docker/Dockerfile.base`를 공식 Isaac Sim base image를 쓰는 형태로 되돌린다.
+
+5. GPU 설정을 확인한다.
+
+   `docker/docker-compose.yaml`은 GPU `0`만 쓰도록 설정되어 있다. 다른 GPU를 쓰려면 `NVIDIA_VISIBLE_DEVICES`와
+   `device_ids` 값을 수정한다.
+
+6. 필요한 Python dependency를 다시 설치한다.
+
+   - Isaac Lab dependency는 공식 Isaac Lab 설치 방법을 따른다.
+   - DexGarmentLab dependency는 `scripts/DexGarmentLab/requirements.txt`를 사용한다.
+   - LeHome evaluation은 W&B를 사용하므로, 로그인하거나 offline/disabled mode로 실행한다.
+
 ## Local Project Notes
 
 This checkout is based on the official Isaac Lab repository
