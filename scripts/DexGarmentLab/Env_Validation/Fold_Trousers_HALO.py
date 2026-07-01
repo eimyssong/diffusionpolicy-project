@@ -165,7 +165,6 @@ class FoldTrousers_Env(BaseEnv):
 
 
         from pxr import Usd, UsdGeom, UsdPhysics, PhysxSchema, Gf
-        # garment 실제 월드 크기 확인
         mesh_path = self.garment.garment_mesh_prim_path
         mesh_prim = self.stage.GetPrimAtPath(mesh_path)
 

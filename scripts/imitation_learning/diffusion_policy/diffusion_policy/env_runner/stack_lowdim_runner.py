@@ -143,7 +143,7 @@ class IsaacLabStackLowdimRunner(BaseLowdimRunner):
             ], axis=-1)
 
 
-            # print(f"[Check 3] Current Isaac Lab Raw Obs: {obs_vec[0, :48]}") # EEF pos 3개만
+            # print(f"[Check 3] Current Isaac Lab Raw Obs: {obs_vec[0, :48]}")
 
 
             return {"obs": obs_vec} 
@@ -224,76 +224,59 @@ class IsaacLabStackLowdimRunner(BaseLowdimRunner):
     #         device = policy.device
     #         dtype = policy.dtype
 
-    #         # 0. 정책 및 환경 초기화
     #         policy.reset()
     #         obs = self.reset()
     #         reward_sum = 0.0
     #         step_idx = 0
 
-    #         # 초기 관측치 히스토리 설정
     #         obs_history = collections.deque(maxlen=self.n_obs_steps)
     #         for _ in range(self.n_obs_steps):
     #             obs_history.append(copy.deepcopy(obs))
 
     #         while step_idx < self.max_steps:
-    #             # 1. Observation 준비 (B, T_obs, D_obs)
     #             np_obs = np.stack([o["obs"] for o in obs_history], axis=1)
                 
     #             obs_dict_raw = {
     #                 "obs": torch.from_numpy(np_obs).to(device=device, dtype=dtype)
     #             }
                 
-    #             # policy에 포함된 normalizer를 사용하여 정규화 수행
     #             obs_dict = policy.normalizer.normalize(obs_dict_raw)
 
-    #             # 2. Diffusion policy → action chunk 예측
     #             with torch.no_grad():
     #                 action_dict = policy.predict_action(obs_dict)
 
-    #             # --- [AttributeError 방지 로직] ---
-    #             # 모델 출력의 'action_pred'를 normalizer가 인식하는 'action'으로 변환
     #             if 'action_pred' in action_dict:
     #                 action_dict['action'] = action_dict.pop('action_pred')
                 
-    #             # Normalizer에 등록된 키('action')만 추출하여 역정규화 진행
-    #             # 등록되지 않은 키가 섞여 들어오면 params_dict[key] 에러가 발생함
     #             clean_action_dict = {
     #                 k: v for k, v in action_dict.items() 
     #                 if k in policy.normalizer.params_dict
     #             }
                 
-    #             # 역정규화 실행
     #             unnormalized_dict = policy.normalizer.unnormalize(clean_action_dict)
     #             np_action_chunk = unnormalized_dict["action"].detach().cpu().numpy()
     #             # ----------------------------------
 
-    #             # 3. Action Chunk 실행 루프 (T_action 단계만큼 실행)
     #             for i in range(self.n_action_steps):
     #                 if step_idx >= self.max_steps:
     #                     break
                     
-    #                 # 현재 스텝의 액션 추출 (B, D_action)
     #                 current_action = np_action_chunk[:, i, :].astype(np.float32)
 
-    #                 # Isaac IK-Rel 안정화를 위한 클리핑 (필요 시 조절)
     #                 # current_action = np.clip(current_action, -0.05, 0.05) 
 
-    #                 # 환경 스텝 실행
     #                 obs, reward, done, info = self.step(current_action)
 
-    #                 # 데이터 업데이트
     #                 reward_sum += reward
     #                 obs_history.append(copy.deepcopy(obs))
     #                 step_idx += 1
 
-    #                 # 종료 조건 체크 (Vectorized Env 대응)
     #                 if isinstance(done, torch.Tensor):
     #                     if done.any():
     #                         break
     #                 elif done:
     #                     break
 
-    #             # 루프 밖에서도 종료 여부 확인
     #             if isinstance(done, torch.Tensor):
     #                 if done.any(): break
     #             elif done: break

@@ -220,7 +220,6 @@ def FoldTops(pos, ori, usd_path, ground_material_usd, data_collection_flag, reco
     )
 
     #########################################################################
-    # # 추가
     # env.model.visualize_pcd_corresponce(
     #     input_pcd=pcd,
     #     save_or_not=False
@@ -247,7 +246,6 @@ def FoldTops(pos, ori, usd_path, ground_material_usd, data_collection_flag, reco
 
 
     #########################################################################
-    # 추가
     env.model.visualize_pcd_corresponce(
         input_pcd=pcd,
         save_or_not=False

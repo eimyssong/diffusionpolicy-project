@@ -74,8 +74,8 @@
 #         )
 
 #         if hasattr(cfg.sim, "render_settings"):
-#             cfg.sim.render_settings.enable_cameras = True # 렌더링 엔진 수준에서 카메라 켬
-#             cfg.sim.disable_contact_processing = False # 필요시 접촉 처리 유지
+#             cfg.sim.render_settings.enable_cameras = True
+#             cfg.sim.disable_contact_processing = False
 
 #         target_root = asset_root_url
 

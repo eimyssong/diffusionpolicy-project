@@ -333,7 +333,6 @@ if __name__=="__main__":
         ori = np.array([angle, 0.0, 0.0])
         Base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # assets_lists = os.path.join(Base_dir,"Model_HALO/GAM/checkpoints/Trousers/assets_list.txt")
-        # 하의로 학습하고 상의로 테스트
         assets_lists = os.path.join(Base_dir,"Model_HALO/GAM/checkpoints/Tops_LongSleeve/assets_list.txt")
         assets_list = []
         with open(assets_lists,"r",encoding='utf-8') as f:

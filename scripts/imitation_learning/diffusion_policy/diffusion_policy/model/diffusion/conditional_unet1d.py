@@ -95,9 +95,6 @@ class ConditionalUnet1D(nn.Module):
         in_out = list(zip(all_dims[:-1], all_dims[1:]))
 
 
-        # 지금 안쓰기는하지만 local_cond_~의 경우 아까 본 global_cond_~와 반대로 local한 정보를 encoding함 
-        # 이렇게 인코딩된 local_cond 특징들은 Unet의 Down-sampling 시작점과 Up-sampling 끝점에서 원래 데이터(sample)와 더해짐
-        # 밑에 있는 mid_dim과 다르게 중간 layer들을 잇는게 아니라 전체 모델의 시작점, 끝점을 잇는 것인듯
         local_cond_encoder = None
         if local_cond_dim is not None: 
             _, dim_out = in_out[0]

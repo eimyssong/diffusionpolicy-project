@@ -21,8 +21,7 @@ class DiffusionUnetImagePolicy(BaseImagePolicy):
             n_action_steps, 
             n_obs_steps,
             num_inference_steps=None,
-            obs_as_global_cond=True, # action만 Unet의 입력으로 들어감, obs를 Unet의 condition으로 사용
-            # 이게 False일 경우 action과 obs가 Unet의 입력으로 들어감
+            obs_as_global_cond=True,
 
             diffusion_step_embed_dim=256,
             down_dims=(256,512,1024),
@@ -44,8 +43,8 @@ class DiffusionUnetImagePolicy(BaseImagePolicy):
         input_dim = action_dim + obs_feature_dim
         global_cond_dim = None
         if obs_as_global_cond:
-            input_dim = action_dim # obs_as_global_cond이 True이면 input으로 action만 들어감 
-            global_cond_dim = obs_feature_dim * n_obs_steps # obs_as_global_cond이 True이면 obs는 condition으로 사용, obs가 Unet의 condition으로 들어감 
+            input_dim = action_dim
+            global_cond_dim = obs_feature_dim * n_obs_steps
 
         model = ConditionalUnet1D(
             input_dim=input_dim,

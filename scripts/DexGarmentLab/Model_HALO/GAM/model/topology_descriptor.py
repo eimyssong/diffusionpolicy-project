@@ -30,11 +30,9 @@ def compute_topology_descriptor(points: np.ndarray, garment_type: str = "tops") 
     garment_type = garment_type.lower()
 
     if "trouser" in garment_type or "pants" in garment_type or "pant" in garment_type:
-        # 허리 쪽 progress=0, 바짓단 쪽 progress=1
         y_top = np.percentile(y, 95)
         branch_progress = np.clip((y_top - y) / y_span, 0.0, 1.0)
     else:
-        # 몸통 중심 progress=0, 소매 끝 progress=1
         branch_progress = np.clip(np.abs(x - x_mid) / (0.5 * x_span), 0.0, 1.0)
 
     endpoint_score = _smoothstep(0.72, 0.95, branch_progress)
@@ -91,11 +89,9 @@ def compute_topology_descriptor(points: np.ndarray, garment_type: str = "tops") 
 #     garment_type = garment_type.lower()
 
 #     if "trouser" in garment_type or "pants" in garment_type or "pant" in garment_type:
-#         # 허리 쪽 progress=0, 바짓단 쪽 progress=1
 #         y_top = np.percentile(y, 95)
 #         directional_progress = np.clip((y_top - y) / y_span, 0.0, 1.0)
 #     else:
-#         # 몸통 중심 progress=0, 소매 끝 progress=1
 #         directional_progress = np.clip(np.abs(x - x_mid) / (0.5 * x_span), 0.0, 1.0)
 
 #     branch_progress = np.clip(
@@ -158,16 +154,10 @@ def compute_topology_descriptor(points: np.ndarray, garment_type: str = "tops") 
 #     garment_type = garment_type.lower()
 
 #     if "trouser" in garment_type or "pants" in garment_type or "pant" in garment_type:
-#         # 하의:
-#         # limb endpoint = 바짓단
-#         # waist = 위쪽 waistband
 #         limb_progress = np.clip(0.7 * y_from_top + 0.3 * radial, 0.0, 1.0)
 #         limb_endpoint_score = _smoothstep(0.72, 0.95, y_from_top)
 #         waist_score = _smoothstep(0.72, 0.95, y_from_bottom)
 #     else:
-#         # 상의:
-#         # limb endpoint = 소매 끝
-#         # waist = 아래쪽 허리단 / 밑단
 #         limb_progress = np.clip(0.7 * x_out + 0.3 * radial, 0.0, 1.0)
 #         limb_endpoint_score = _smoothstep(0.72, 0.95, x_out)
 #         waist_score = _smoothstep(0.72, 0.95, y_from_top)

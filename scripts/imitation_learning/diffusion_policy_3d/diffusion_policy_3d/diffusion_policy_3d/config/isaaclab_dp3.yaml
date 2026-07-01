@@ -1,4 +1,3 @@
-# dp3.yaml 파일을 가져와서 편집함
 
 defaults:
   - task: isaaclab_stack

@@ -241,18 +241,14 @@ class FrankaCubeStackVisuomotorEnvCfg(stack_joint_pos_env_cfg.FrankaCubeStackEnv
                 focal_length=24.0, focus_distance=400.0, horizontal_aperture=20.955, clipping_range=(0.0001, 2)
             ),
             offset=CameraCfg.OffsetCfg(
-                # # 기본 세팅
                 # pos=(1.0, 0.0, 0.4), rot=(0.35355, -0.61237, -0.61237, 0.35355), convention="ros"
                 
-                # # 정면에서 눈높이로
                 # pos=(1.5, 0.0, 0.2), rot=(0.5, -0.5, -0.5, 0.5), convention="ros"
 
 
-                # 대각선 위쪽에서 
                 # pos=(1.5, 0.3, 0.5), rot=(0.492, -0.428, -0.663, 0.362), convention="ros"
                 # pos = (1.3, 0.3, 0.3), rot = (0.46, -0.46, -0.54, 0.44),  convention="ros"
 
-                # # 대각선 위쪽에서, dataset14에서 사용한 세팅
                 # pos = (1.3, 0.3, 0.5), rot = (0.46, -0.46, -0.74, 0.44),  convention="ros"
 
                 pos = (1.3, 0.3, 0.4), rot = (0.46, -0.46, -0.74, 0.44),  convention="ros"

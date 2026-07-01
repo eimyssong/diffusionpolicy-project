@@ -202,7 +202,6 @@
 #         self.model.eval()
         
 #         # -----------------------------------------------------------------
-#         # [추가] Global + Local Feature 융합을 위한 MLP 레이어 정의
 #         # -----------------------------------------------------------------
 #         self.feature_dim = 512
 #         self.fusion_mlp = nn.Sequential(
@@ -214,15 +213,11 @@
 
 #     def fuse_features(self, local_features):
 #         '''
-#         Local feature와 Global feature(Max-pooling)를 결합하는 헬퍼 함수
 #         local_features: (N, D)
 #         '''
-#         # 글로벌 맥락 추출 (Point 축 기준 Max Pooling): (1, D)
 #         global_feature = torch.max(local_features, dim=0, keepdim=True)[0]
-#         # 국소 피처 개수만큼 확장: (N, D)
 #         global_feature_expand = global_feature.expand(local_features.shape[0], -1)
         
-#         # Concat 후 Fusion MLP 통과: (N, 2*D) -> (N, D)
 #         fused = torch.cat([local_features, global_feature_expand], dim=-1)
 #         return self.fusion_mlp(fused)
 
@@ -245,14 +240,10 @@
 
 #     def train(self, input_pcd:np.ndarray, num_epochs=10000, topk_geom=500, sigma=0.02):
 #         '''
-#         Region-level Positive + Global Context 기반 대조 학습
-#         - topk_geom: 지오메트릭 상 가깝다고 판단할 이웃 점의 개수 (Region 크기)
-#         - sigma: Soft 라벨 생성을 위한 가우시안 커널 가중치 파라미터
 #         '''
 #         self.model.train()
 #         self.fusion_mlp.train()
 
-#         # 새로 추가된 fusion_mlp의 파라미터도 함께 최적화하도록 설정
 #         optimizer = torch.optim.Adam(
 #             list(self.model.parameters()) + list(self.fusion_mlp.parameters()), 
 #             lr=1e-5
@@ -263,47 +254,37 @@
 #         for epoch in range(num_epochs):
 #             optimizer.zero_grad()
 
-#             # 두 개의 다형성 Augmentation 생성
 #             view1_np = self.augment_pointcloud(pcd)
 #             view2_np = self.augment_pointcloud(pcd)
 
-#             # 정규화 진행
 #             view1_norm, *_ = normalize_pcd_points_xy(view1_np)
 #             view2_norm, *_ = normalize_pcd_points_xy(view2_np)
 
 #             v1_coord = torch.from_numpy(view1_norm).float().to(self.device)
 #             v2_coord = torch.from_numpy(view2_norm).float().to(self.device)
 
-#             # 1. Region-level Positive 지정을 위한 기하학적 거리 행렬 계산: (N, N)
 #             dist_matrix = torch.cdist(v1_coord, v2_coord)
             
-#             # 각 점마다 가장 가까운 top-k개의 이웃 점구름 인덱스 탐색
 #             topk_dist, topk_idx = torch.topk(dist_matrix, k=topk_geom, dim=-1, largest=False)
             
-#             # 가우시안 커널 기반으로 거리에 따른 Soft Target 부여 (가까울수록 큰 값)
 #             soft_weights = torch.exp(-topk_dist**2 / (2 * sigma**2))
 #             soft_weights = soft_weights / (soft_weights.sum(dim=-1, keepdim=True) + 1e-8)
             
-#             # (N, N) 크기의 Soft Target Matrix 생성
 #             soft_targets = torch.zeros_like(dist_matrix)
 #             soft_targets.scatter_(1, topk_idx, soft_weights)
 
-#             # 2. Backbone 피처 추출 후 Global 융합 레이어 통과
 #             feat1_raw = self.model(v1_coord.unsqueeze(0)).squeeze(0) # (N, D)
 #             feat2_raw = self.model(v2_coord.unsqueeze(0)).squeeze(0) # (N, D)
 
 #             feat1 = self.fuse_features(feat1_raw)
 #             feat2 = self.fuse_features(feat2_raw)
 
-#             # 피처 정규화
 #             feat1 = F.normalize(feat1, dim=1)
 #             feat2 = F.normalize(feat2, dim=1)
 
-#             # 3. 유사도 행렬 계산 및 Soft Contrastive Loss 산출
 #             logits = torch.matmul(feat1, feat2.T) / 0.07 # (N, N)
 #             log_probs = F.log_softmax(logits, dim=-1)
             
-#             # Soft Cross-Entropy 공식 적용
 #             loss = -(soft_targets * log_probs).sum(dim=-1).mean()
 
 #             loss.backward()
@@ -317,7 +298,6 @@
 
 #     def get_feature(self, input_pcd:np.ndarray, index_list:list=None):
 #         '''
-#         get feature of input point cloud (Global 융합 적용)
 #         '''
 #         normalized_pcd, *_ = normalize_pcd_points_xy(input_pcd)
 #         normalize_pcd = np.expand_dims(normalized_pcd, axis=0)
@@ -327,7 +307,6 @@
 #                 torch.from_numpy(normalize_pcd).to(self.device).float(),
 #             ).squeeze(0)
             
-#             # [수정] 인퍼런스 시에도 동일하게 Global-Local 융합 피처를 반환해야 함
 #             pcd_features = self.fuse_features(raw_features)
         
 #         if index_list is not None:
@@ -344,7 +323,6 @@
 #         '''
 #         demo_pcd = o3d.io.read_point_cloud(f"Model_HALO/GAM/checkpoints/{self.catogory}/demo_garment.ply").points
 
-#         # 데모 데이터를 가지고 제로샷 정렬을 위한 파인튜닝 진행
 #         self.train(demo_pcd)
 
 #         demo_feature = self.get_feature(demo_pcd, index_list)
@@ -357,16 +335,13 @@
 #         cprint("----------- GAM Inference Begin -----------", color="blue", attrs=["bold"])
         
 #         # -----------------------------------------------------------------
-#         # [수정] Inference 단계에서의 Top-k Soft Matching 구현
 #         # -----------------------------------------------------------------
-#         topk_inf = 30  # 유사도 상위 30개 점을 보고 부드럽게 가중 평균합을 구함
+#         topk_inf = 30
 #         values, indices = torch.topk(result, topk_inf, dim=1) # (M, topk_inf)
         
-#         # 상위 top-k개의 유사도 점수를 기반으로 가중치(Softmax) 계산
 #         weights = F.softmax(values / 0.02, dim=1).cpu().numpy() # (M, topk_inf)
 #         indices_np = indices.cpu().numpy() # (M, topk_inf)
 
-#         # 유사한 top-k개 지점들의 3D 좌표를 Softmax 가중치로 블렌딩하여 강건한 매니퓰레이션 포인트 산출
 #         manipulation_points = np.zeros((result.shape[0], 3))
 #         for i in range(result.shape[0]):
 #             neighbor_points = input_pcd[indices_np[i]] # (topk_inf, 3)
@@ -506,33 +481,27 @@
 #         return pts
 
 #     # -----------------------------------------------------------------
-#     # [수정] 여러 가먼트 소스를 유연하게 입력받아 대조 학습하는 함수
 #     # -----------------------------------------------------------------
 #     def train(self, garment_source, num_epochs=1000, topk_geom=50, sigma=0.02):
 #         '''
-#         - garment_source: 데이터셋 폴더 경로 (str), 파일 목록 텍스트 파일 (.txt), 혹은 경로 리스트 (list)
 #         '''
 #         file_list = []
         
-#         # 1. 입력 타입에 따른 파일 경로 파싱
 #         if isinstance(garment_source, str):
-#             if os.path.isdir(garment_source): # 폴더 경로인 경우
+#             if os.path.isdir(garment_source):
 #                 file_list = [os.path.join(garment_source, f) for f in os.listdir(garment_source) if f.endswith(('.ply', '.pcd'))]
-#             elif os.path.isfile(garment_source) and garment_source.endswith('.txt'): # 텍스트 파일 리스트인 경우
+#             elif os.path.isfile(garment_source) and garment_source.endswith('.txt'):
 #                 with open(garment_source, 'r') as f:
 #                     file_list = [line.strip() for line in f.readlines() if line.strip() and os.path.exists(line.strip())]
-#             else: # 단일 가먼트 파일 경로인 경우
+#             else:
 #                 if os.path.exists(garment_source):
 #                     file_list = [garment_source]
-#         elif isinstance(garment_source, list): # 리스트 형태인 경우
+#         elif isinstance(garment_source, list):
 #             file_list = [f for f in garment_source if os.path.exists(f)]
 
 #         if not file_list:
-#             cprint("Error 유효한 가먼트 데이터 파일을 찾지 못했습니다. 경로를 확인해주세요.", color="red", attrs=["bold"])
 #             return
 
-#         # 2. I/O 병목을 줄이기 위해 포인트구름 데이터를 미리 메모리에 로드
-#         cprint(f"총 {len(file_list)}개의 가먼트 데이터를 메모리에 로드 중...", color="green")
 #         all_garment_pcds = []
 #         for path in file_list:
 #             pcd_data = o3d.io.read_point_cloud(path)
@@ -549,7 +518,6 @@
 #         cprint(f"Epochs: {num_epochs}", color="yellow", attrs=["bold"])
 
 #         for epoch in range(num_epochs):
-#             # 에포크마다 가먼트 순서를 무작위로 섞어 데이터 편향 방지
 #             random.shuffle(all_garment_pcds)
 #             epoch_loss = 0.0
 
@@ -565,10 +533,8 @@
 #                 v1_coord = torch.from_numpy(view1_norm).float().to(self.device)
 #                 v2_coord = torch.from_numpy(view2_norm).float().to(self.device)
 
-#                 # Region-level Positive 지정을 위한 기하학적 거리 행렬 계산
 #                 dist_matrix = torch.cdist(v1_coord, v2_coord)
                 
-#                 # 가먼트 점의 총 개수가 topk_geom보다 적을 때를 대비한 예외 처리
 #                 actual_k = min(topk_geom, dist_matrix.shape[-1])
 #                 topk_dist, topk_idx = torch.topk(dist_matrix, k=actual_k, dim=-1, largest=False)
                 
@@ -578,7 +544,6 @@
 #                 soft_targets = torch.zeros_like(dist_matrix)
 #                 soft_targets.scatter_(1, topk_idx, soft_weights)
 
-#                 # Feature 추출 및 Global Context 융합
 #                 feat1_raw = self.model(v1_coord.unsqueeze(0)).squeeze(0)
 #                 feat2_raw = self.model(v2_coord.unsqueeze(0)).squeeze(0)
 
@@ -623,17 +588,14 @@
 #             return pcd_features
         
 #     # -----------------------------------------------------------------
-#     # [수정] 인퍼런스 단에서 다중 가먼트 학습을 트리거할 수 있도록 파라미터 추가
 #     # -----------------------------------------------------------------
 #     def get_manipulation_points(self, input_pcd:np.ndarray, index_list:list=None):
 #         '''
-#         - train_source: 인퍼런스 직전에 대조 학습을 수행할 가먼트 경로/폴더 (지정 안 하면 기존 demo만 한 번 학습하거나 스킵 가능)
 #         '''
 #         demo_path = f"Model_HALO/GAM/checkpoints/{self.catogory}/demo_garment.ply"
 #         demo_pcd = o3d.io.read_point_cloud(demo_path).points
 #         train_source = "/workspace/isaaclab/scripts/DexGarmentLab/pointcloud/"
 
-#         # train_source가 명시되었다면 다중 자산 파인튜닝 진행, 없으면 데모 단일 데이터만 파인튜닝
 #         if train_source is not None:
 #             self.train(train_source)
 #         else:

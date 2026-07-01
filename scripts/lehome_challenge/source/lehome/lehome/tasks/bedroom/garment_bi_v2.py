@@ -77,25 +77,18 @@ class GarmentEnv(DirectRLEnv):
         logger.info(">>> STARTING GLOBAL SDF INJECTION <<<")
 
         for prim in stage.TraverseAll():
-            # 메시가 아니면 통과
             if not prim.IsA(UsdGeom.Mesh):
                 continue
             
-            # 1. 일단 충돌 API가 있는지 확인하고 없으면 붙임
             if not prim.HasAPI(UsdPhysics.CollisionAPI):
                 UsdPhysics.CollisionAPI.Apply(prim)
 
-            # 2. [에러 해결의 핵심] 모든 메쉬를 SDF 기반으로 변경
-            # Triangle Mesh -> SDF Mesh로 강제 전환
             mesh_collision = UsdPhysics.MeshCollisionAPI.Apply(prim)
             mesh_collision.GetApproximationAttr().Set("sdf") #
 
-            # 3. SDF 해상도 설정 (256이 국룰입니다)
             physx_collision = PhysxSchema.PhysxTriangleMeshCollisionAPI.Apply(prim)
             physx_collision.CreateSdfResolutionAttr().Set(256) #
             
-            # 4. 바닥이나 테이블 같은 정적 물체는 가급적 Kinematic으로 명시
-            # (이렇게 하면 SDF 에러가 아예 안 날 확률이 높습니다)
             path = str(prim.GetPath())
             if "Ground" in path or "Table" in path:
                 if not prim.HasAPI(PhysxSchema.PhysxRigidBodyAPI):

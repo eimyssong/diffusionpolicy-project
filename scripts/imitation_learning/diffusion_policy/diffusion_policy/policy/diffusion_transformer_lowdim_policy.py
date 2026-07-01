@@ -12,18 +12,16 @@ from diffusion_policy.model.diffusion.mask_generator import LowdimMaskGenerator
 
 class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
     def __init__(self, 
-            model: TransformerForDiffusion,  # 얼마나 많은 노이즈가 섞여 있는지를 예측하는 transformer 기반 모델
-            noise_scheduler: DDPMScheduler,  # 학습 시에 노이즈를 얼마나 섞을지, 추론 시에는 어떤 스케줄로 노이즈를 걷어낼지 결정
-            horizon,                         # 모델이 한 번에 고려하는 전체 타임스텝의 길이
-            obs_dim,                         # obs 벡터의 크기 / 현재 39
-            action_dim,                      # action 벡터의 크기 / 현재 7
-            n_action_steps,                  # 추론 한 번으로 여러 개의 미래 action을 예측했을 때 실제로 로봇 환경에 실행할 액션의 개수
-            n_obs_steps,                     # 의사결정을 위해 모델이 과거, 현재로부터 참조하는 obs의 개수
-            num_inference_steps=None,        # diffusion 추론 시 노이즈를 제거하는 반복 횟수
-            obs_as_cond=False,               # obs를 diffusion 과정의 조건으로만 사용하면 True, obs를 action과 합쳐서 하나의 시퀀스로 처리하면 False
-                                             # transformer는 두 정보(obs, action)를 통합해서 사용함
-            pred_action_steps_only=False,    # 모델이 전체 horizon 중 액션 부분만 예측하도록 제한하면 True
-                                             # 모델이 obs 부분까지 포함하여 전체 시퀀스를 복원 및 예측하도록 하면 False
+            model: TransformerForDiffusion,
+            noise_scheduler: DDPMScheduler,
+            horizon,
+            obs_dim,
+            action_dim,
+            n_action_steps,
+            n_obs_steps,
+            num_inference_steps=None,
+            obs_as_cond=False,
+            pred_action_steps_only=False,
             # parameters passed to step
             **kwargs):
         super().__init__()

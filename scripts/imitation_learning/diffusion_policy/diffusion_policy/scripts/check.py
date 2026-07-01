@@ -41,12 +41,9 @@ print_hdf5_structure(A)
 # import h5py
 # import numpy as np
 
-# # 학습에 쓴 hdf5 파일 경로
 # dataset_path = A
 
 # with h5py.File(dataset_path, 'r') as f:
-#     # 예시로 첫 번째 데모의 EEF 위치 데이터를 꺼내봄
-#     # robomimic 구조에 따라 경로가 다를 수 있으니 f.keys()로 확인 필요
 #     raw_pos = f['data/demo_0/obs/eef_pos'][:]
 #     raw_quat = f['data/demo_0/obs/eef_quat'][:]
 #     raw_cube_pose = f['data/demo_0/obs/cube_positions'][:]

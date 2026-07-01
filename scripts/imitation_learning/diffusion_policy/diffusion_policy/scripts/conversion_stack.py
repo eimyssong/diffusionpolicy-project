@@ -17,11 +17,10 @@
 #     h5 = h5py.File(hdf5_path, "r")
 #     z = zarr.open(zarr_path, mode="w")
 #     data_group = z.create_group("data")
-#     obs_group = data_group.create_group("obs") # 중요: obs는 내부 그룹으로 생성
+#     obs_group = data_group.create_group("obs")
 
 #     demos = sorted([k for k in h5["data"].keys() if k.startswith("demo_")])
     
-#     # 임시 리스트들
 #     img_agent_list = []
 #     img_wrist_list = []
 #     eef_pos_list = []

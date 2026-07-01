@@ -60,7 +60,6 @@ class MultiImageObsEncoder(ModuleAttrMixin):
                 
                 if this_model is not None:
                     input_channels = shape[0]
-                    # 2. ResNet의 첫 번째 레이어(conv1)가 3채널로 고정되어 있다면 4채널로 교체
                     if hasattr(this_model, 'conv1'):
                         if this_model.conv1.in_channels != input_channels:
                             old_conv = this_model.conv1
@@ -72,7 +71,6 @@ class MultiImageObsEncoder(ModuleAttrMixin):
                                 padding=old_conv.padding,
                                 bias=(old_conv.bias is not None)
                             )
-                            # (선택 사항) 기존 RGB 가중치는 유지하고 Depth 채널만 초기화
                             with torch.no_grad():
                                 this_model.conv1.weight[:, :3, :, :] = old_conv.weight            
                                         
@@ -168,15 +166,15 @@ class MultiImageObsEncoder(ModuleAttrMixin):
             # (B,N*D)
             feature = feature.reshape(batch_size,-1)
             features.append(feature)
-        else: # rgb obs에 대해 각각 다른 model을 사용함
+        else:
             # run each rgb obs to independent models
-            for key in self.rgb_keys: # 지금 여기서는 table_cam, wrist_cam이 됨
+            for key in self.rgb_keys:
                 img = obs_dict[key]
                 if batch_size is None:
                     batch_size = img.shape[0]
                 else:
-                    assert batch_size == img.shape[0] # img.shape가 (B, 3, 84, 84)의 형태가 되어야하니 그게 아니면 에러를 발생시킴
-                assert img.shape[1:] == self.key_shape_map[key] # 나머지 부분도 다 같아야함
+                    assert batch_size == img.shape[0]
+                assert img.shape[1:] == self.key_shape_map[key]
                 img = self.key_transform_map[key](img)
                 feature = self.key_model_map[key](img)
                 features.append(feature)
@@ -188,11 +186,11 @@ class MultiImageObsEncoder(ModuleAttrMixin):
                 batch_size = data.shape[0]
             else:
                 assert batch_size == data.shape[0]
-            assert data.shape[1:] == self.key_shape_map[key] # low_dim에 대해서도 모든 크키가 같아야함
+            assert data.shape[1:] == self.key_shape_map[key]
             features.append(data)
         
         # concatenate all features
-        result = torch.cat(features, dim=-1) # rgb와 low_dim 데이터를 모두 합쳐줌
+        result = torch.cat(features, dim=-1)
         return result
     
     @torch.no_grad()

@@ -214,7 +214,6 @@ class GarmentObject(SingleClothPrim):
         print("usd_prim_path:", self.usd_prim_path)
         print("mesh_prim_path:", self.mesh_prim_path)
 
-        # 1. prim 직접 확인
         prim = stage.GetPrimAtPath(self.mesh_prim_path)
         print("Prim valid:", prim.IsValid())
 
@@ -222,13 +221,11 @@ class GarmentObject(SingleClothPrim):
             print("Prim type:", prim.GetTypeName())
             print("Prim path:", prim.GetPath())
 
-            # 2. attribute 확인
             attrs = prim.GetAttributes()
             print("\nAttributes:")
             for attr in attrs:
                 print("-", attr.GetName())
 
-            # 3. points 확인
             points_attr = prim.GetAttribute("points")
             print("\npoints attr exists:", bool(points_attr))
 
@@ -238,7 +235,6 @@ class GarmentObject(SingleClothPrim):
             else:
                 print("points value: None")
 
-            # 4. children 확인
             print("\nChildren:")
             for child in prim.GetChildren():
                 print("-", child.GetPath(), child.GetTypeName())

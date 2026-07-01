@@ -149,14 +149,11 @@ def main() -> None:
         env_cfg.sim.render.antialiasing_mode = "DLSS"
 
 
-    # --- <<<<< Pinocchio 모델 로드 (최초 1회) >>>>> ---
-    # Isaac Lab에 내장된 Franka 로봇의 URDF 파일 경로
     urdf_path = "/workspace/isaaclab/piper_isaac_sim/piper_description/urdf/piper_description.urdf"
 
     try:
         model = pinocchio.buildModelFromUrdf(urdf_path)
         data = model.createData()
-        # 계산할 팔 끝(end-effector) 링크의 ID를 미리 찾아둡니다.
         eef_frame_id = model.getFrameId("gripper_base")
         # eef_frame_id = model.getFrameId("link6")
         print("Pinocchio model for Piper loaded successfully.")
@@ -164,7 +161,6 @@ def main() -> None:
         print(f"Failed to load Pinocchio model from URDF: {e}")
         simulation_app.close()
         return
-    # --- <<<<< 여기까지 >>>>> ---
 
     try:
         # create environment
@@ -368,18 +364,14 @@ def main() -> None:
         #         else:
         #             env.sim.render()
 
-        #         # --- <<<<< 이미지 및 관절 값 저장 로직 >>>>> ---
         #         if should_save_image:
-        #             # 1. 고유한 파일명을 위한 타임스탬프 생성
         #             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                     
-        #             # 2. 필요한 객체 가져오기
         #             scene = env.unwrapped.scene
         #             camera = scene["wrist_camera"]
         #             robot = scene["robot"]
         #             camera_index = 0
 
-        #             # 3. RGB 이미지 처리 및 저장
         #             if "rgb" in camera.data.output:
         #                 rgb_data = camera.data.output["rgb"][camera_index]
         #                 rgb_np = rgb_data.cpu().numpy()[..., :3].astype(np.uint8)
@@ -388,18 +380,15 @@ def main() -> None:
         #                 rgb_img.save(rgb_filename)
         #                 print(f"Saved RGB image to: {rgb_filename}")
 
-        #             # --- <<<<< 4. Depth 이미지 처리 및 저장 (PNG와 NPY 모두) >>>>> ---
         #             if "distance_to_image_plane" in camera.data.output:
         #                 depth_data = camera.data.output["distance_to_image_plane"][camera_index]
         #                 depth_np_raw = depth_data.cpu().numpy()
-        #                 depth_np = np.squeeze(depth_np_raw) # 원본 float 데이터
+        #                 depth_np = np.squeeze(depth_np_raw)
 
-        #                 # 4a. 절대값(float) 원본 데이터를 .npy 파일로 저장
         #                 depth_raw_filename = os.path.join(output_dir, f"depth_raw_{timestamp}.npy")
         #                 np.save(depth_raw_filename, depth_np)
         #                 print(f"Saved RAW Depth data to: {depth_raw_filename}")
                         
-        #                 # 4b. 시각화를 위해 정규화하여 .png 파일로 저장
         #                 depth_min, depth_max = depth_np.min(), depth_np.max()
         #                 if depth_max > depth_min:
         #                     depth_normalized = (depth_np - depth_min) / (depth_max - depth_min) * 255.0
@@ -410,33 +399,26 @@ def main() -> None:
         #                 depth_img.save(depth_visual_filename)
         #                 print(f"Saved VISUAL Depth image to: {depth_visual_filename}")
 
-        #             # --- <<<<< 5. JSON 메타데이터 수정 >>>>> ---
         #             joint_pos_tensor = robot.data.joint_pos[camera_index]
         #             joint_pos_np = joint_pos_tensor.cpu().numpy()
                     
 
 
-        #             # --- <<<<< Pinocchio를 이용한 FK 계산 >>>> ---
                     
-        #             # 1. 신뢰할 수 있는 실시간 관절 각도(9개)를 가져옵니다.
         #             joint_pos_tensor = robot.data.joint_pos[camera_index]
         #             q = joint_pos_tensor.cpu().numpy()
 
-        #             # 2. Pinocchio FK 계산 실행 (Franka 팔 관절 7개 + 그리퍼 2개 = 총 9개 값 사용)
         #             pinocchio.forwardKinematics(model, data, q)
         #             pinocchio.updateFramePlacements(model, data)
 
-        #             # 3. 계산된 팔 끝(end-effector)의 포즈 가져오기
         #             eef_pose = data.oMf[eef_frame_id]
-        #             eef_pos = eef_pose.translation  # NumPy 배열 (x, y, z)
-        #             eef_rot_matrix = eef_pose.rotation # 3x3 회전 행렬
+        #             eef_pos = eef_pose.translation
+        #             eef_rot_matrix = eef_pose.rotation
 
-        #             # 4. 카메라 오프셋(offset) 적용하여 최종 카메라 포즈 계산
         #             cam_pos_np_pin = np.zeros(3)
         #             cam_quat_ros_np = np.array([1.0, 0.0, 0.0, 0.0])
         #             if camera:
         #                 offset_pos = np.array(camera.cfg.offset.pos)
-        #                 # 쿼터니언 (w,x,y,z) -> pin.Quaternion
         #                 offset_quat_pin = pinocchio.Quaternion(np.array([
         #                     camera.cfg.offset.rot[1], # x
         #                     camera.cfg.offset.rot[2], # y
@@ -445,7 +427,6 @@ def main() -> None:
         #                 ]))
         #                 offset_se3 = pinocchio.SE3(offset_quat_pin, offset_pos)
                         
-        #                 # 팔 끝 포즈 X 카메라 오프셋 포즈
         #                 final_cam_pose = eef_pose * offset_se3
                         
         #                 cam_pos_np_pin = final_cam_pose.translation
@@ -463,9 +444,8 @@ def main() -> None:
         #             metadata = {
         #                 "timestamp": timestamp,
         #                 "rgb_image_path": f"rgb_{timestamp}.png",
-        #                 # 경로 키 이름을 명확하게 구분
-        #                 "depth_visual_path": f"depth_visual_{timestamp}.png", # 시각화용 PNG
-        #                 "depth_raw_path": f"depth_raw_{timestamp}.npy",       # 절대값 NPY
+        #                 "depth_visual_path": f"depth_visual_{timestamp}.png",
+        #                 "depth_raw_path": f"depth_raw_{timestamp}.npy",
         #                 "joint_positions": joint_pos_np.tolist(),
         #                 "joint_names": robot.joint_names,
         #                 "camera_position_world_calculated": cam_pos_np_pin.tolist(),
@@ -479,7 +459,6 @@ def main() -> None:
         #                 json.dump(metadata, f, indent=4)
         #             print(f"Saved metadata to: {json_filename}")
 
-        #             # 플래그 초기화
         #             should_save_image = False
 
 

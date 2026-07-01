@@ -14,7 +14,6 @@ class GAM_Topo_Model(nn.Module):
             nn.Linear(128, feature_dim),
         )
 
-        # 처음에는 기존 checkpoint feature를 거의 유지한다.
         self.mix_logit = nn.Parameter(torch.tensor(-2.0))
         # self.mix_logit = nn.Parameter(torch.tensor(-1.0))
 
