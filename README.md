@@ -29,8 +29,18 @@ Input: cube orientations (T, 12), cube positions (T, 9), eef pos (T, 3), eef qua
 Output: actions (T, 7)
 
 ## low dim result
-<img width="690" height="525" alt="image" src="https://github.com/user-attachments/assets/fd2511dd-fa99-44af-b9f8-877e9d5aa4f5" />
-<img width="682" height="525" alt="image" src="https://github.com/user-attachments/assets/2ce0c8d5-c097-4560-8204-526fba33359d" />
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/fd2511dd-fa99-44af-b9f8-877e9d5aa4f5" width="400">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/2ce0c8d5-c097-4560-8204-526fba33359d" width="400"></img>
+    </td>
+  </tr>
+</table>
+
 
 ## RGB setup
 Input: eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2) => (T, 9) / table cam (T, 3, 84, 84), wrist cam (T, 3, 84, 84)
@@ -39,11 +49,23 @@ Output: actions (T, 7)
 
 전체 table 구성, wrist cam RGB, table cam RGB
 
-<img width="525" height="400" alt="image" src="https://github.com/user-attachments/assets/6b2e5214-ebfb-4379-a176-82d94e6aeb69" />
-<img width="533" height="400" alt="image" src="https://github.com/user-attachments/assets/15490179-d4c6-4642-a3d8-124731640603" />
-<img width="399" height="400" alt="image" src="https://github.com/user-attachments/assets/2226ae64-88d7-41d1-80e9-485af9a3baf6" />
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/6b2e5214-ebfb-4379-a176-82d94e6aeb69" width="500">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/15490179-d4c6-4642-a3d8-124731640603" width="500">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/2226ae64-88d7-41d1-80e9-485af9a3baf6" width="400"></img>
+    </td>
+  </tr>
+</table>
+
 
 ## RGB result
+
 <img width="400" height="400" alt="RGB1" src="https://github.com/user-attachments/assets/a47ba413-de84-41fe-bf8a-f1ce45cc9329" />
 <img width="400" height="400" alt="RGB2" src="https://github.com/user-attachments/assets/899fd666-6410-4274-8729-54c357e30901" />
 <img width="400" height="400" alt="RGB3" src="https://github.com/user-attachments/assets/017c7e46-afff-43b1-a977-f12fdd0f8c49" />
@@ -53,8 +75,19 @@ Input: eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2) => (T, 9) / table cam
 
 Output: actions (T, 7)
 
-<img width="641" height="480" alt="image" src="https://github.com/user-attachments/assets/65f4e1f9-d66e-48d5-b793-d2027c73e0bc" />
-<img width="641" height="480" alt="image" src="https://github.com/user-attachments/assets/5f42ecdc-a561-40eb-b559-335bcc905212" />
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/65f4e1f9-d66e-48d5-b793-d2027c73e0bc" width="400">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/5f42ecdc-a561-40eb-b559-335bcc905212" width="400"></img>
+    </td>
+  </tr>
+</table>
+
+
 
 ## RGBD result
 <img width="400" height="400" alt="RGBD1" src="https://github.com/user-attachments/assets/5118cdab-297e-4eeb-a66b-89e770dd7bcd" />
@@ -86,3 +119,13 @@ Output: actions (T, 7)
 
 
 
+## Citation
+```
+@article{mittal2025isaaclab,
+  title={Isaac Lab: A GPU-Accelerated Simulation Framework for Multi-Modal Robot Learning},
+  author={Mayank Mittal and Pascal Roth and James Tigue and Antoine Richard and Octi Zhang and Peter Du and Antonio Serrano-Muñoz and Xinjie Yao and René Zurbrügg and Nikita Rudin and Lukasz Wawrzyniak and Milad Rakhsha and Alain Denzler and Eric Heiden and Ales Borovicka and Ossama Ahmed and Iretiayo Akinola and Abrar Anwar and Mark T. Carlson and Ji Yuan Feng and Animesh Garg and Renato Gasoto and Lionel Gulich and Yijie Guo and M. Gussert and Alex Hansen and Mihir Kulkarni and Chenran Li and Wei Liu and Viktor Makoviychuk and Grzegorz Malczyk and Hammad Mazhar and Masoud Moghani and Adithyavairavan Murali and Michael Noseworthy and Alexander Poddubny and Nathan Ratliff and Welf Rehberg and Clemens Schwarke and Ritvik Singh and James Latham Smith and Bingjie Tang and Ruchik Thaker and Matthew Trepte and Karl Van Wyk and Fangzhou Yu and Alex Millane and Vikram Ramasamy and Remo Steiner and Sangeeta Subramanian and Clemens Volk and CY Chen and Neel Jawale and Ashwin Varghese Kuruttukulam and Michael A. Lin and Ajay Mandlekar and Karsten Patzwaldt and John Welsh and Huihua Zhao and Fatima Anes and Jean-Francois Lafleche and Nicolas Moënne-Loccoz and Soowan Park and Rob Stepinski and Dirk Van Gelder and Chris Amevor and Jan Carius and Jumyung Chang and Anka He Chen and Pablo de Heras Ciechomski and Gilles Daviet and Mohammad Mohajerani and Julia von Muralt and Viktor Reutskyy and Michael Sauter and Simon Schirm and Eric L. Shi and Pierre Terdiman and Kenny Vilella and Tobias Widmer and Gordon Yeoman and Tiffany Chen and Sergey Grizan and Cathy Li and Lotus Li and Connor Smith and Rafael Wiltz and Kostas Alexis and Yan Chang and David Chu and Linxi "Jim" Fan and Farbod Farshidian and Ankur Handa and Spencer Huang and Marco Hutter and Yashraj Narang and Soha Pouya and Shiwei Sheng and Yuke Zhu and Miles Macklin and Adam Moravanszky and Philipp Reist and Yunrong Guo and David Hoeller and Gavriel State},
+  journal={arXiv preprint arXiv:2511.04831},
+  year={2025},
+  url={https://arxiv.org/abs/2511.04831}
+}
+```
