@@ -130,3 +130,21 @@ Output: actions (T, 7)
   url={https://arxiv.org/abs/2511.04831}
 }
 ```
+
+```
+@article{chi2024diffusionpolicy,
+	author = {Cheng Chi and Zhenjia Xu and Siyuan Feng and Eric Cousineau and Yilun Du and Benjamin Burchfiel and Russ Tedrake and Shuran Song},
+	title ={Diffusion Policy: Visuomotor Policy Learning via Action Diffusion},
+	journal = {The International Journal of Robotics Research},
+	year = {2024},
+}
+```
+
+```
+@inproceedings{Ze2024DP3,
+	title={3D Diffusion Policy: Generalizable Visuomotor Policy Learning via Simple 3D Representations},
+	author={Yanjie Ze and Gu Zhang and Kangning Zhang and Chenyuan Hu and Muhan Wang and Huazhe Xu},
+	booktitle={Proceedings of Robotics: Science and Systems (RSS)},
+	year={2024}
+}
+```
