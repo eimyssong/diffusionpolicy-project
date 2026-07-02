@@ -80,10 +80,10 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/65f4e1f9-d66e-48d5-b793-d2027c73e0bc" width="400">
+      <img src="https://github.com/user-attachments/assets/65f4e1f9-d66e-48d5-b793-d2027c73e0bc" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/5f42ecdc-a561-40eb-b559-335bcc905212" width="400"></img>
+      <img src="https://github.com/user-attachments/assets/5f42ecdc-a561-40eb-b559-335bcc905212" width="300"></img>
     </td>
   </tr>
 </table>
