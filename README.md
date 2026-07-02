@@ -1,3 +1,29 @@
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/03004fbd-ce52-49b4-be6d-a54b6bfd7a3b" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/1ecf7441-7b8b-4991-858b-af5295ae5eb0" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/b564f09b-8903-4c58-bc94-209a86257732" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/d2d49e1b-545c-41d1-994c-9a8f2a8dc752" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/13b2e703-b6f1-4105-bb75-08c535cd6c9f" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/a31c3031-2c76-4030-b8ee-746c04bce508" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/ea79ea5d-b7ea-4bdb-8c3f-a07f4d1bc338" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/d0b691f4-46d1-4221-860b-58818b5f0251" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/cb2cc920-b761-4b67-92ef-50abc51dc604" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/84c201f8-e849-4484-98e4-098a0e07a18b" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/8276e414-77a0-4a44-a434-a0c5cc8dfd33" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/dedf79d9-223b-4406-930e-a9074ef32a74" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/f269cc67-c0a5-4f3e-9a3e-5706056db9de" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/3763c969-62db-431b-8d2e-35bff418b544" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/1169abdd-948a-4e09-bb45-ded0e8196e79" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/86afa0cb-8c59-4f9b-b3d0-2d222937fc2d" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/9da5e657-b452-42a8-84fd-10e55d823143" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/8c457064-b3ca-48f9-94b0-1522cb48f2f0" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/b30eab8a-7fd5-4c22-bec3-f1f40c7dd56a" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/e0e0aaaa-99ce-4246-9794-c0d387720564" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/a41b4e01-4bb2-42ac-8271-d700cb51a05e" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/abab0ee5-7e64-445b-9560-a982d77709cc" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/b752f202-259e-4351-9a40-492e62c96785" />
+
+
+
 ## low dim setup
 Input: cube orientations (T, 12), cube positions (T, 9), eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2), joint pos (T, 9), joint vel (T, 9) => (T, 48)
 
