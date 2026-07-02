@@ -66,9 +66,9 @@ Output: actions (T, 7)
 
 ## RGB result
 
-<img width="400" height="400" alt="RGB1" src="https://github.com/user-attachments/assets/a47ba413-de84-41fe-bf8a-f1ce45cc9329" />
-<img width="400" height="400" alt="RGB2" src="https://github.com/user-attachments/assets/899fd666-6410-4274-8729-54c357e30901" />
-<img width="400" height="400" alt="RGB3" src="https://github.com/user-attachments/assets/017c7e46-afff-43b1-a977-f12fdd0f8c49" />
+<img width="300" height="300" alt="RGB1" src="https://github.com/user-attachments/assets/a47ba413-de84-41fe-bf8a-f1ce45cc9329" />
+<img width="300" height="300" alt="RGB2" src="https://github.com/user-attachments/assets/899fd666-6410-4274-8729-54c357e30901" />
+<img width="300" height="300" alt="RGB3" src="https://github.com/user-attachments/assets/017c7e46-afff-43b1-a977-f12fdd0f8c49" />
 
 ## RGBD setup
 Input: eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2) => (T, 9) / table cam (T, 4, 84, 84), wrist cam (T, 4, 84, 84)
@@ -90,10 +90,10 @@ Output: actions (T, 7)
 
 
 ## RGBD result
-<img width="400" height="400" alt="RGBD1" src="https://github.com/user-attachments/assets/5118cdab-297e-4eeb-a66b-89e770dd7bcd" />
-<img width="400" height="400" alt="RGBD2" src="https://github.com/user-attachments/assets/5ac961c2-5ebd-43f9-a5ec-d7ed3fba8ef1" />
-<img width="400" height="400" alt="RGBD3" src="https://github.com/user-attachments/assets/4653a4db-4f8b-4180-9010-c650c250f482" />
-<img width="400" height="400" alt="RGBD4" src="https://github.com/user-attachments/assets/6cbcb630-215e-453d-ac9e-4781136bce6b" />
+<img width="300" height="300" alt="RGBD1" src="https://github.com/user-attachments/assets/5118cdab-297e-4eeb-a66b-89e770dd7bcd" />
+<img width="300" height="300" alt="RGBD2" src="https://github.com/user-attachments/assets/5ac961c2-5ebd-43f9-a5ec-d7ed3fba8ef1" />
+<img width="300" height="300" alt="RGBD3" src="https://github.com/user-attachments/assets/4653a4db-4f8b-4180-9010-c650c250f482" />
+<img width="300" height="300" alt="RGBD4" src="https://github.com/user-attachments/assets/6cbcb630-215e-453d-ac9e-4781136bce6b" />
 <img width="577" height="304" alt="image" src="https://github.com/user-attachments/assets/af8a3fe9-7e09-409e-9070-365a120dad18" />
 
 ## DP3 setup
