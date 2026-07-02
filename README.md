@@ -33,10 +33,10 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/fd2511dd-fa99-44af-b9f8-877e9d5aa4f5" width="400">
+      <img src="https://github.com/user-attachments/assets/fd2511dd-fa99-44af-b9f8-877e9d5aa4f5" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/2ce0c8d5-c097-4560-8204-526fba33359d" width="400"></img>
+      <img src="https://github.com/user-attachments/assets/2ce0c8d5-c097-4560-8204-526fba33359d" width="300"></img>
     </td>
   </tr>
 </table>
@@ -52,13 +52,13 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/6b2e5214-ebfb-4379-a176-82d94e6aeb69" width="500">
+      <img src="https://github.com/user-attachments/assets/6b2e5214-ebfb-4379-a176-82d94e6aeb69" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/15490179-d4c6-4642-a3d8-124731640603" width="500">
+      <img src="https://github.com/user-attachments/assets/15490179-d4c6-4642-a3d8-124731640603" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/2226ae64-88d7-41d1-80e9-485af9a3baf6" width="400"></img>
+      <img src="https://github.com/user-attachments/assets/2226ae64-88d7-41d1-80e9-485af9a3baf6" width="200"></img>
     </td>
   </tr>
 </table>
