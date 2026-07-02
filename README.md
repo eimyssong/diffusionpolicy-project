@@ -49,6 +49,7 @@ Output: actions (T, 7)
 
 전체 table 구성, wrist cam RGB, table cam RGB
 
+
 <table>
   <tr>
     <td align="center">
