@@ -8,10 +8,10 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/fd2511dd-fa99-44af-b9f8-877e9d5aa4f5" width="300">
+      <img src="https://github.com/user-attachments/assets/53781f30-2966-44b3-8c32-3934d1d2652d" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/2ce0c8d5-c097-4560-8204-526fba33359d" width="300"></img>
+      <img src="https://github.com/user-attachments/assets/64a01a92-778c-4b3c-939d-63556c3cfbd9" width="300"></img>
     </td>
   </tr>
 </table>
@@ -28,13 +28,13 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/6b2e5214-ebfb-4379-a176-82d94e6aeb69" width="300">
+      <img src="https://github.com/user-attachments/assets/ffb71ae3-dbb2-408d-bb6c-744e37f30d09" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/15490179-d4c6-4642-a3d8-124731640603" width="300">
+      <img src="https://github.com/user-attachments/assets/a95397ec-91ea-4fd2-998a-b83548feb974" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/2226ae64-88d7-41d1-80e9-485af9a3baf6" width="300"></img>
+      <img src="https://github.com/user-attachments/assets/abad4416-b1dd-42ac-909c-f44846d3fbf2" width="300"></img>
     </td>
   </tr>
 </table>
@@ -42,9 +42,9 @@ Output: actions (T, 7)
 
 ## RGB result
 
-<img width="300" height="300" alt="RGB1" src="https://github.com/user-attachments/assets/a47ba413-de84-41fe-bf8a-f1ce45cc9329" />
-<img width="300" height="300" alt="RGB2" src="https://github.com/user-attachments/assets/899fd666-6410-4274-8729-54c357e30901" />
-<img width="300" height="300" alt="RGB3" src="https://github.com/user-attachments/assets/017c7e46-afff-43b1-a977-f12fdd0f8c49" />
+<img width="300" height="300" alt="RGB1" src="https://github.com/user-attachments/assets/cfb5a3ef-e9ef-40b9-adda-2d206489ac0c" />
+<img width="300" height="300" alt="RGB2" src="https://github.com/user-attachments/assets/61011611-b37f-4036-857b-524f736e8aa7" />
+<img width="300" height="300" alt="RGB3" src="https://github.com/user-attachments/assets/006f5c20-a886-44db-b9b2-09c3b13648aa" />
 
 ## RGBD setup
 Input: eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2) => (T, 9) / table cam (T, 4, 84, 84), wrist cam (T, 4, 84, 84)
@@ -55,10 +55,10 @@ Output: actions (T, 7)
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/65f4e1f9-d66e-48d5-b793-d2027c73e0bc" width="300">
+      <img src="https://github.com/user-attachments/assets/de6f4bee-6487-4bf3-9658-6205eea7e158" width="300">
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/5f42ecdc-a561-40eb-b559-335bcc905212" width="300"></img>
+      <img src="https://github.com/user-attachments/assets/6f25c923-3a7a-4e92-bc2e-8b8ed2d9b436" width="300"></img>
     </td>
   </tr>
 </table>
@@ -66,11 +66,11 @@ Output: actions (T, 7)
 
 
 ## RGBD result
-<img width="300" height="300" alt="RGBD1" src="https://github.com/user-attachments/assets/5118cdab-297e-4eeb-a66b-89e770dd7bcd" />
-<img width="300" height="300" alt="RGBD2" src="https://github.com/user-attachments/assets/5ac961c2-5ebd-43f9-a5ec-d7ed3fba8ef1" />
-<img width="300" height="300" alt="RGBD3" src="https://github.com/user-attachments/assets/4653a4db-4f8b-4180-9010-c650c250f482" />
-<img width="300" height="300" alt="RGBD4" src="https://github.com/user-attachments/assets/6cbcb630-215e-453d-ac9e-4781136bce6b" />
-<img width="577" height="304" alt="image" src="https://github.com/user-attachments/assets/af8a3fe9-7e09-409e-9070-365a120dad18" />
+<img width="300" height="300" alt="RGBD1" src="https://github.com/user-attachments/assets/3b1819f5-fe06-49c1-b6a6-7c0ef1929947" />
+<img width="300" height="300" alt="RGBD2" src="https://github.com/user-attachments/assets/5017f5c5-6d5b-40b4-9535-245722dc1db6" />
+<img width="300" height="300" alt="RGBD3" src="https://github.com/user-attachments/assets/60beae7c-1adf-415f-b36c-082fedb1c1cd" />
+<img width="300" height="300" alt="RGBD4" src="https://github.com/user-attachments/assets/6720800b-b5a5-4ad0-b778-50f49be4907f" />
+<img width="577" height="304" alt="image" src="https://github.com/user-attachments/assets/1a514919-eb84-4873-9384-ab6fc5e7a999" />
 
 ## DP3 setup
 Point cloud, no color
@@ -79,19 +79,19 @@ Input: eef pos (T, 3), eef quat (T, 4), gripper pos (T, 2) => (T, 9) / point clo
 
 Output: actions (T, 7)
 
-<img width="400" height="400" alt="pointcloud" src="https://github.com/user-attachments/assets/ff32f7f2-19c1-4c9d-8876-464e843fcb4f" />
+<img width="400" height="400" alt="pointcloud" src="https://github.com/user-attachments/assets/f18c3f74-75cf-4fe6-96a4-bac3ae449687" />
 
 ## DP3, no color result
-<img width="400" height="200" alt="dp3,nocolor1" src="https://github.com/user-attachments/assets/4811b680-c805-4e3e-81c8-278e312c2aa4" />
-<img width="400" height="200" alt="dp3,nocolor2" src="https://github.com/user-attachments/assets/733dd35b-0fde-4e8e-9b4c-01beb63016c4" />
-<img width="400" height="200" alt="dp3,nocolor3" src="https://github.com/user-attachments/assets/817cb098-905f-4b9f-a697-ec9ba51fff9b" />
-<img width="400" height="200" alt="dp3,nocolor4" src="https://github.com/user-attachments/assets/642c1eac-fd9e-49d4-9a0d-b748300b3f2e" />
+<img width="400" height="200" alt="dp3,nocolor1" src="https://github.com/user-attachments/assets/71c7b1ae-dae7-4652-8341-8d7c436a760e" />
+<img width="400" height="200" alt="dp3,nocolor2" src="https://github.com/user-attachments/assets/c697bd78-45f4-4d2f-b3ad-f3eb8b61097b" />
+<img width="400" height="200" alt="dp3,nocolor3" src="https://github.com/user-attachments/assets/c2ffc3c9-2e04-4ceb-9cf1-121e67e236a4" />
+<img width="400" height="200" alt="dp3,nocolor4" src="https://github.com/user-attachments/assets/4a3b36a7-5e0b-4fae-8387-f374d192c4cd" />
 
 ## DP3, use color result
-<img width="400" height="200" alt="dp3,color1" src="https://github.com/user-attachments/assets/a8a7c9b8-94a4-40c4-99d4-1f994a070d6d" />
-<img width="400" height="200" alt="dp3,color2" src="https://github.com/user-attachments/assets/e4a5203d-1a29-4b5f-be52-64da592dc36e" />
-<img width="400" height="200" alt="dp3,color3" src="https://github.com/user-attachments/assets/2562f985-fa88-4e42-b354-ded1dec54c00" />
-<img width="400" height="200" alt="dp3,color4" src="https://github.com/user-attachments/assets/de061df8-af81-4ddb-ae7a-a898c63a63f9" />
+<img width="400" height="200" alt="dp3,color1" src="https://github.com/user-attachments/assets/724d7155-963b-4771-8edf-4f4520003674" />
+<img width="400" height="200" alt="dp3,color2" src="https://github.com/user-attachments/assets/a60e4437-07b1-4e13-95e5-b396e707ff7e" />
+<img width="400" height="200" alt="dp3,color3" src="https://github.com/user-attachments/assets/b005de55-7fd9-423f-982c-de98ed222aa0" />
+<img width="400" height="200" alt="dp3,color4" src="https://github.com/user-attachments/assets/554bb06d-d697-414e-b2ab-a3deb851f955" />
 
 
 
