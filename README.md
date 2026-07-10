@@ -1,3 +1,5 @@
+https://github.com/eimyssong/diffusionpolicy-project/blob/735572220bf4fd6d845edb37cfcb5bf5693c96fe/260326_diffusionpolicy_%EA%B9%80%EC%9D%80%EC%86%A1.pdf
+
 https://github.com/eimyssong/diffusionpolicy-project/tree/b1cb268f28c2c66114cd3f26b458e2e6c76c2fe0/scripts/imitation_learning/diffusion_policy
 
 https://github.com/eimyssong/diffusionpolicy-project/tree/b1cb268f28c2c66114cd3f26b458e2e6c76c2fe0/scripts/imitation_learning/diffusion_policy_3d
